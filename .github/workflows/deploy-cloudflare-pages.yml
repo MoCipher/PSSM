@@ -29,24 +29,34 @@ jobs:
           npm install -g @cloudflare/wrangler
           sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Prepare wrangler config and publish
+      - name: Prepare wrangler config and publish (with debug)
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_PAGES_PROJECT_NAME: ${{ secrets.CF_PAGES_PROJECT_NAME }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         run: |
-          set -e
-          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_PAGES_PROJECT_NAME" ]; then
+          set -euo pipefail
+          echo "== CI debug: environment =="
+          echo "CF_PAGES_PROJECT_NAME=${CF_PAGES_PROJECT_NAME:-<unset>}"
+          echo "CF_ACCOUNT_ID=${CF_ACCOUNT_ID:-<unset>}"
+
+          if [ -z "${CF_API_TOKEN:-}" ] || [ -z "${CF_PAGES_PROJECT_NAME:-}" ]; then
             echo "Missing required secrets: CF_API_TOKEN and/or CF_PAGES_PROJECT_NAME" >&2
             exit 1
           fi
 
+          echo "== wrangler version =="
+          wrangler --version || true
+
+          echo "== wrangler whoami (attempt) =="
+          wrangler whoami --json 2>/dev/null || true
+
           # If CF_ACCOUNT_ID isn't provided, attempt to detect it via `wrangler whoami`
-          if [ -z "$CF_ACCOUNT_ID" ]; then
+          if [ -z "${CF_ACCOUNT_ID:-}" ]; then
             echo "CF_ACCOUNT_ID not provided — attempting to detect via 'wrangler whoami'"
             WHOAMI_JSON=$(wrangler whoami --json 2>/dev/null || true)
             if [ -n "$WHOAMI_JSON" ]; then
-              DETECTED_ACCOUNT_ID=$(echo "$WHOAMI_JSON" | jq -r '.account_id // empty') || true
+              DETECTED_ACCOUNT_ID=$(echo "$WHOAMI_JSON" | jq -r '.account_id // empty' || true)
               if [ -n "$DETECTED_ACCOUNT_ID" ]; then
                 CF_ACCOUNT_ID="$DETECTED_ACCOUNT_ID"
                 echo "Detected account id: $CF_ACCOUNT_ID"
@@ -61,12 +71,31 @@ jobs:
           # Generate a minimal wrangler.toml at runtime so you don't need to commit sensitive account ids
           cat > wrangler.toml <<EOF
 name = "${CF_PAGES_PROJECT_NAME}"
-account_id = "${CF_ACCOUNT_ID}"
+account_id = "${CF_ACCOUNT_ID:-}"
 
 [site]
 bucket = "./dist"
 entry-point = "."
 EOF
 
-          # Publish to Pages
-          wrangler pages publish ./dist --project-name "$CF_PAGES_PROJECT_NAME" --branch main
+          echo "== wrangler.toml =="
+          sed -n '1,120p' wrangler.toml || true
+
+          echo "== dist contents =="
+          ls -la ./dist || true
+
+          echo "== Running wrangler pages publish =="
+          set -x
+          if ! wrangler pages publish ./dist --project-name "${CF_PAGES_PROJECT_NAME}" --branch main; then
+            echo "wrangler publish failed — attempting to show wrangler logs if present" >&2
+            LOG_DIR="$HOME/.config/.wrangler/logs"
+            echo "Looking for logs in: $LOG_DIR"
+            if [ -d "$LOG_DIR" ]; then
+              echo "Found logs:" && ls -la "$LOG_DIR" || true
+              echo "== Last wrangler log tail =="
+              tail -n 200 "$LOG_DIR"/* || true
+            else
+              echo "No wrangler log dir present: $LOG_DIR" >&2
+            fi
+            exit 1
+          fi

@@ -10,7 +10,7 @@ export interface PasswordEntry {
   twoFactorSecret?: string;
   createdAt: number;
   updatedAt: number;
-  lastUsed?: number;
+  lastUsed?: number | null;
 }
 
 const STORAGE_KEY = 'password_manager_data';
@@ -82,7 +82,7 @@ export const loadPasswords = async (masterPassword: string): Promise<PasswordEnt
   try {
     const decrypted = await decryptWithPassword(encrypted, masterPassword);
     const parsed = JSON.parse(decrypted) as PasswordEntry[];
-    return parsed.map(p => ({ ...p, lastUsed: p.lastUsed || null }));
+    return parsed.map(p => ({ ...p, lastUsed: (p as any).lastUsed ?? null }));
   } catch (error) {
     throw new Error('Failed to decrypt passwords. Wrong master password?');
   }
@@ -127,7 +127,7 @@ export const importPasswords = (json: string): PasswordEntry[] => {
       twoFactorSecret: item.twoFactorSecret || '',
       createdAt: item.createdAt || Date.now(),
       updatedAt: item.updatedAt || Date.now(),
-      lastUsed: item.lastUsed || null,
+      lastUsed: item.lastUsed ?? null,
     }));
   } catch (error) {
     throw new Error('Failed to parse JSON file');
@@ -140,7 +140,7 @@ export const importPasswordsCSV = (csv: string): PasswordEntry[] => {
     throw new Error('CSV file must have at least a header and one data row');
   }
   
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  // header parsing intentionally ignored for now
   const dataRows = lines.slice(1);
   
   return dataRows.map((row, index) => {

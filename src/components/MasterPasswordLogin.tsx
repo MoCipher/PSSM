@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { hasMasterPassword } from '../utils/storage';
 import './MasterPasswordLogin.css';
 
 interface Props {

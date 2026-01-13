@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import './NavBar.css';
 import debounce from '../utils/debounce';
 
@@ -16,7 +16,7 @@ interface Props {
   onHelp?: () => void;
 }
 
-export default function NavBar({ title = '🔐 Password Manager', onAdd, onOpenAccount, onOpenDashboard, theme, toggleTheme, onLogout, onSearch }: Props) {
+export default function NavBar({ title = '🔐 Password Manager', onAdd, onOpenAccount, onOpenDashboard, theme, toggleTheme, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp }: Props) {
   const searchRef = useRef<HTMLInputElement | null>(null);
   const debounced = useMemo(() => onSearch ? debounce((q: string) => onSearch(q), 400) : null, [onSearch]);
 

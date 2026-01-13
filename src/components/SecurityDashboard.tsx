@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { PasswordEntry } from '../utils/storage';
 import './SecurityDashboard.css';
 

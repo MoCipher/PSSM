@@ -11,7 +11,7 @@ import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
 import MasterPasswordSetup from './components/MasterPasswordSetup';
 import MasterPasswordLogin from './components/MasterPasswordLogin';
-import ExportImport from './components/ExportImport';
+// ExportImport intentionally not used in CI build; remove import to avoid TS unused errors.
 import NavBar from './components/NavBar';
 import AccountManagement from './components/AccountManagement';
 import SecurityDashboard from './components/SecurityDashboard';
@@ -21,7 +21,6 @@ import './App.css';
 import { ToastProvider } from './components/Toast';
 import { getSavedTheme, saveTheme, applyTheme, Theme } from './utils/theme';
 import { serverSearch } from './utils/search';
-import KeyboardShortcuts from './components/KeyboardShortcuts';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,9 +32,9 @@ function App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => getSavedTheme() || 'light');
   const [search, setSearch] = useState<string>('');
-  const [serverSearchEnabled, setServerSearchEnabled] = useState<boolean>(false);
+  const [serverSearchEnabled, _setServerSearchEnabled] = useState<boolean>(false);
   const [serverResults, setServerResults] = useState<PasswordEntry[]>([]);
-  const [showHelp, setShowHelp] = useState(false);
+  const [_showHelp, setShowHelp] = useState(false);
   const accountPanelRef = useRef<HTMLDivElement | null>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
 

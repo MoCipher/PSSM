@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function KeyboardShortcuts({ onClose }: { onClose: () => void }) {
   return (
     <div className="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="kb-shortcuts-title">

@@ -22,7 +22,7 @@ export default function useFocusTrap(containerRef: React.RefObject<HTMLElement |
 
     function handleKey(e: KeyboardEvent) {
       if (e.key !== 'Tab') return;
-      const focusables = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(el => el.offsetParent !== null);
+      const focusables = Array.from((container as HTMLElement).querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(el => el.offsetParent !== null);
       if (focusables.length === 0) {
         e.preventDefault();
         return;

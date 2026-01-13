@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PasswordEntry } from '../utils/storage';
 import { generateTOTP } from '../utils/totp';
 import './PasswordList.css';

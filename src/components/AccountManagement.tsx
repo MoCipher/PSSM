@@ -10,7 +10,7 @@ interface Props {
 export default function AccountManagement({ masterPassword, onPasswordChanged }: Props) {
   const [current, setCurrent] = useState('');
   const [newPass, setNewPass] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [confirmNew, setConfirmNew] = useState('');
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [biometricEnabled, setBiometricEnabled] = useState<boolean>(() => !!localStorage.getItem('password_manager_biometric'));
@@ -30,7 +30,7 @@ export default function AccountManagement({ masterPassword, onPasswordChanged }:
       return;
     }
 
-    if (newPass !== confirm) {
+    if (newPass !== confirmNew) {
       setError('New passwords do not match');
       return;
     }
@@ -39,7 +39,7 @@ export default function AccountManagement({ masterPassword, onPasswordChanged }:
       await changeMasterPassword(current, newPass);
       onPasswordChanged(newPass);
       setStatus('Master password updated');
-      setCurrent(''); setNewPass(''); setConfirm('');
+      setCurrent(''); setNewPass(''); setConfirmNew('');
     } catch (err) {
       console.error(err);
       setError('Failed to change master password');
@@ -65,7 +65,7 @@ export default function AccountManagement({ masterPassword, onPasswordChanged }:
           challenge: Uint8Array.from(window.crypto.getRandomValues(new Uint8Array(32))).buffer,
           rp: { name: 'Password Manager' },
           user: {
-            id: Uint8Array.from(String(Date.now()).split('').map(s => s.charCodeAt(0))).buffer,
+            id: Uint8Array.from(Date.now().toString().split('').map(s => s.charCodeAt(0))).buffer,
             name: 'user',
             displayName: 'User'
           },
@@ -108,7 +108,7 @@ export default function AccountManagement({ masterPassword, onPasswordChanged }:
 
           <div className="form-group">
             <label htmlFor="confirm-master">Confirm New Password</label>
-            <input id="confirm-master" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required aria-required="true" aria-label="Confirm new master password" />
+            <input id="confirm-master" type="password" value={confirmNew} onChange={e => setConfirmNew(e.target.value)} required aria-required="true" aria-label="Confirm new master password" />
           </div>
 
           {error && <div className="error">{error}</div>}

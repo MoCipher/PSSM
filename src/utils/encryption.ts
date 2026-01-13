@@ -47,7 +47,8 @@ export const deriveKey = async (password: string, salt: Uint8Array, iterations =
   return subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt.buffer,
+      // ensure we pass a plain ArrayBufferView backed by a standard ArrayBuffer
+      salt: Uint8Array.from(salt),
       iterations,
       hash: 'SHA-256'
     },
@@ -66,15 +67,15 @@ export const encryptWithPassword = async (plaintext: string, password: string): 
   const key = await deriveKey(password, salt, iterations);
 
   const ct = await subtle.encrypt(
-    { name: 'AES-GCM', iv: iv.buffer },
+    { name: 'AES-GCM', iv: Uint8Array.from(iv) },
     key,
     strToBuf(plaintext)
   );
 
   const blob: EncryptedBlob = {
     version: 1,
-    salt: bufToBase64(salt.buffer),
-    iv: bufToBase64(iv.buffer),
+    salt: bufToBase64(Uint8Array.from(salt).buffer),
+    iv: bufToBase64(Uint8Array.from(iv).buffer),
     iterations,
     ciphertext: bufToBase64(ct)
   };
@@ -92,7 +93,7 @@ export const decryptWithPassword = async (encrypted: string, password: string): 
   const key = await deriveKey(password, salt, blob.iterations);
 
   const pt = await subtle.decrypt(
-    { name: 'AES-GCM', iv: iv.buffer },
+    { name: 'AES-GCM', iv: iv },
     key,
     base64ToBuf(blob.ciphertext)
   );
