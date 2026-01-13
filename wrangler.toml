@@ -1,0 +1,13 @@
+# Wrangler configuration (template)
+# Replace the placeholders below with your Cloudflare account/project details.
+
+name = "your-project-name"
+account_id = "YOUR_ACCOUNT_ID"
+
+[site]
+bucket = "./dist"
+entry-point = "."
+
+# If you plan to publish Workers (not Pages), uncomment and configure below:
+# type = "javascript"
+# workers_dev = true

@@ -1,0 +1,10 @@
+.security-dashboard { max-width: 900px; margin: 0 auto; }
+.security-dashboard .metrics { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap }
+.metric { background:var(--card-bg); padding:12px; border-radius:12px; min-width:140px; text-align:center; box-shadow:var(--shadow); }
+.metric-number { font-size:1.5rem; font-weight:700 }
+.metric-label { color:var(--text-secondary); font-size:0.9rem }
+.card { margin-top:1rem; padding:1rem; border-radius:12px; background:var(--card-bg); box-shadow:var(--shadow); }
+.insights-list { list-style:none; padding-left:0; margin:0 }
+.insights-list li { padding:8px 0; border-bottom:1px dashed rgba(0,0,0,0.05) }
+.dup-group { margin-bottom:8px }
+.small { font-size:0.85rem }

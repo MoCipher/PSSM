@@ -1,0 +1,72 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    name: Build and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Wrangler + jq
+        run: |
+          npm install -g @cloudflare/wrangler
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Prepare wrangler config and publish
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_PAGES_PROJECT_NAME: ${{ secrets.CF_PAGES_PROJECT_NAME }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          set -e
+          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_PAGES_PROJECT_NAME" ]; then
+            echo "Missing required secrets: CF_API_TOKEN and/or CF_PAGES_PROJECT_NAME" >&2
+            exit 1
+          fi
+
+          # If CF_ACCOUNT_ID isn't provided, attempt to detect it via `wrangler whoami`
+          if [ -z "$CF_ACCOUNT_ID" ]; then
+            echo "CF_ACCOUNT_ID not provided — attempting to detect via 'wrangler whoami'"
+            WHOAMI_JSON=$(wrangler whoami --json 2>/dev/null || true)
+            if [ -n "$WHOAMI_JSON" ]; then
+              DETECTED_ACCOUNT_ID=$(echo "$WHOAMI_JSON" | jq -r '.account_id // empty') || true
+              if [ -n "$DETECTED_ACCOUNT_ID" ]; then
+                CF_ACCOUNT_ID="$DETECTED_ACCOUNT_ID"
+                echo "Detected account id: $CF_ACCOUNT_ID"
+              else
+                echo "Unable to detect account id via wrangler; set secret CF_ACCOUNT_ID to avoid this step." >&2
+              fi
+            else
+              echo "'wrangler whoami' returned no JSON; set secret CF_ACCOUNT_ID if detection fails." >&2
+            fi
+          fi
+
+          # Generate a minimal wrangler.toml at runtime so you don't need to commit sensitive account ids
+          cat > wrangler.toml <<EOF
+name = "${CF_PAGES_PROJECT_NAME}"
+account_id = "${CF_ACCOUNT_ID}"
+
+[site]
+bucket = "./dist"
+entry-point = "."
+EOF
+
+          # Publish to Pages
+          wrangler pages publish ./dist --project-name "$CF_PAGES_PROJECT_NAME" --branch main

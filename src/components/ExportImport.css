@@ -1,0 +1,69 @@
+.export-import {
+  position: relative;
+}
+
+.export-import-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: var(--shadow-xl);
+  padding: 1.5rem;
+  min-width: 250px;
+  z-index: 1000;
+  animation: scaleIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.menu-section {
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.menu-section:last-child {
+  margin-bottom: 0;
+}
+
+.menu-section h3 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+}
+
+.menu-section .btn {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-section .btn:last-child {
+  margin-bottom: 0;
+}
+
+.menu-section .btn:hover {
+  transform: translateX(4px);
+}
+
+.export-import-menu .error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+  .export-import-menu {
+    right: auto;
+    left: 0;
+    min-width: 200px;
+  }
+}
