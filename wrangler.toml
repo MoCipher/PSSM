@@ -2,7 +2,7 @@
 # Replace the placeholders below with your Cloudflare account/project details.
 
 name = "pssm1"
-account_id = "spoass@icloud.com"
+account_id = "3335093fd32547addce581d41f67ffb0"
 
 # Compatibility date helps Wrangler choose the runtime behavior
 compatibility_date = "2026-01-13"
