@@ -73,9 +73,15 @@ jobs:
 name = "${CF_PAGES_PROJECT_NAME}"
 account_id = "${CF_ACCOUNT_ID:-}"
 
+# Compatibility date for Wrangler
+compatibility_date = "2026-01-13"
+
 [site]
 bucket = "./dist"
 entry-point = "."
+
+[assets]
+directory = "./dist"
 EOF
 
           echo "== wrangler.toml =="

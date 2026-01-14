@@ -1,12 +1,18 @@
 # Wrangler configuration (template)
 # Replace the placeholders below with your Cloudflare account/project details.
 
-name = "your-project-name"
-account_id = "YOUR_ACCOUNT_ID"
+name = "pssm1"
+account_id = "spoass@icloud.com"
+
+# Compatibility date helps Wrangler choose the runtime behavior
+compatibility_date = "2026-01-13"
 
 [site]
 bucket = "./dist"
 entry-point = "."
+
+[assets]
+directory = "./dist"
 
 # If you plan to publish Workers (not Pages), uncomment and configure below:
 # type = "javascript"
