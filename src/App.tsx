@@ -11,7 +11,7 @@ import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
 import MasterPasswordSetup from './components/MasterPasswordSetup';
 import MasterPasswordLogin from './components/MasterPasswordLogin';
-// ExportImport intentionally not used in CI build; remove import to avoid TS unused errors.
+import ExportImport from './components/ExportImport';
 import NavBar from './components/NavBar';
 import AccountManagement from './components/AccountManagement';
 import SecurityDashboard from './components/SecurityDashboard';
@@ -161,6 +161,10 @@ function App() {
     await savePasswords(updated, masterPassword);
   }, [masterPassword, passwords]);
 
+  const handleImport = (imported: PasswordEntry[]) => {
+    setPasswords(imported);
+  };
+
   const handleEditPassword = useCallback((entry: PasswordEntry) => {
     setEditingPassword(entry);
     setShowForm(true);
@@ -221,6 +225,7 @@ function App() {
               <button onClick={() => setShowForm(true)} className="btn btn-primary">
                 + Add Password
               </button>
+              <ExportImport passwords={passwords} masterPassword={masterPassword} onImport={handleImport} />
             </div>
             <PasswordList
               passwords={[...passwords.filter(p => {
