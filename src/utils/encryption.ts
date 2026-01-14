@@ -102,10 +102,24 @@ export const decryptWithPassword = async (encrypted: string, password: string): 
 };
 
 export const deriveVerifier = async (password: string, salt: Uint8Array, iterations = 200000): Promise<string> => {
-  const key = await deriveKey(password, salt, iterations);
-  const raw = await subtle.exportKey('raw', key);
-  const hash = await subtle.digest('SHA-256', raw);
-  return bufToBase64(hash);
+  // Derive raw bits from PBKDF2 and use that as the verifier. We avoid
+  // exporting CryptoKey material (which may be non-extractable) by
+  // deriving bits directly using the SubtleCrypto API.
+  const baseKey = await subtle.importKey(
+    'raw',
+    strToBuf(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const bits = await subtle.deriveBits(
+    { name: 'PBKDF2', salt: Uint8Array.from(salt), iterations, hash: 'SHA-256' },
+    baseKey,
+    256
+  );
+
+  return bufToBase64(bits);
 };
 
 export default {};
