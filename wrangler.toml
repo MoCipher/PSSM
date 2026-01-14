@@ -7,10 +7,6 @@ account_id = "spoass@icloud.com"
 # Compatibility date helps Wrangler choose the runtime behavior
 compatibility_date = "2026-01-13"
 
-[site]
-bucket = "./dist"
-entry-point = "."
-
 [assets]
 directory = "./dist"
 
