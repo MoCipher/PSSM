@@ -4,7 +4,7 @@ A secure password manager with email-based authentication, device synchronizatio
 
 ## Features
 
-- 📧 Email-based authentication (registration/login)
+- 📧 Email-only authentication with verification codes
 - 🔄 Automatic sync across devices
 - 🔐 Secure password storage with encryption
 - 📤 Export passwords (JSON/CSV)
@@ -28,6 +28,27 @@ npm run dev
 ```
 
 The backend will run on `http://localhost:3001` and the frontend on `http://localhost:5173`.
+
+## Email Configuration
+
+For email verification to work, configure your email settings in `backend/.env`:
+
+```bash
+# Email settings for verification codes
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+
+# Optional: Verification code expiry (default: 300000ms = 5 minutes)
+VERIFICATION_CODE_EXPIRY=300000
+```
+
+### Gmail Setup:
+1. Enable 2-factor authentication on your Gmail account
+2. Generate an App Password: https://support.google.com/accounts/answer/185833
+3. Use your Gmail address as EMAIL_USER and the App Password as EMAIL_PASS
 
 ## Build
 
@@ -87,23 +108,25 @@ CF_API_TOKEN=... CF_PAGES_PROJECT_NAME=... CF_ACCOUNT_ID=... wrangler pages publ
 
 ## Usage
 
-1. **Account Setup**: Create an account with your email address or sign in to an existing account
-2. **Device Sync**: Your passwords automatically sync across all your devices
-3. **Add Passwords**: Click "Add Password" and fill in the details
-4. **Enable 2FA**: Check "Enable 2FA" and enter your TOTP secret (base32 format)
-5. **Copy Credentials**: Click the 📋 icon next to any field to copy to clipboard
-6. **Export/Import**: Use the Export/Import menu to backup or restore your passwords
-7. **2FA Codes**: 2FA codes are automatically generated and can be refreshed
+1. **Account Setup**: Enter your email address and we'll send you a verification code
+2. **Verify Email**: Enter the 6-digit code sent to your email to complete setup
+3. **Device Sync**: Your passwords automatically sync across all your devices
+4. **Add Passwords**: Click "Add Password" and fill in the details
+5. **Enable 2FA**: Check "Enable 2FA" and enter your TOTP secret (base32 format)
+6. **Copy Credentials**: Click the 📋 icon next to any field to copy to clipboard
+7. **Export/Import**: Use the Export/Import menu to backup or restore your passwords
+8. **2FA Codes**: 2FA codes are automatically generated and can be refreshed
 
 ## Security Notes
 
 - All passwords are encrypted client-side using AES-256 encryption
-- User passwords are hashed with bcrypt on the server
+- Email verification codes provide secure authentication
 - JWT tokens are used for API authentication
 - 2FA secrets are encrypted along with passwords
 - Password data is stored encrypted on the server
 - End-to-end encryption ensures only you can access your passwords
 - Automatic sync keeps your devices in sync securely
+- Verification codes expire after 5 minutes for security
 
 ## Technology Stack
 

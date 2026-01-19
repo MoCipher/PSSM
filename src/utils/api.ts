@@ -68,19 +68,19 @@ class ApiClient {
   }
 
   // Authentication methods
-  async register(email: string, password: string): Promise<AuthResponse> {
-    const response = await this.request<AuthResponse>('/auth/register', {
+  async requestVerificationCode(email: string, isLogin: boolean = false): Promise<{ message: string; email: string }> {
+    const endpoint = isLogin ? '/auth/login' : '/auth/register';
+    return this.request(endpoint, {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email }),
     });
-    this.setToken(response.token);
-    return response;
   }
 
-  async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await this.request<AuthResponse>('/auth/login', {
+  async verifyCode(email: string, code: string, isLogin: boolean = false): Promise<AuthResponse> {
+    const endpoint = isLogin ? '/auth/login/verify' : '/auth/register/verify';
+    const response = await this.request<AuthResponse>(endpoint, {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, code }),
     });
     this.setToken(response.token);
     return response;

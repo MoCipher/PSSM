@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { apiClient } from '../utils/api';
+import EmailVerification from './EmailVerification';
 import './EmailRegistration.css';
 
 interface Props {
@@ -9,10 +10,9 @@ interface Props {
 
 export default function EmailRegistration({ onRegister, onSwitchToLogin }: Props) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,11 +20,9 @@ export default function EmailRegistration({ onRegister, onSwitchToLogin }: Props
     setIsLoading(true);
 
     const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-    const trimmedConfirm = confirmPassword.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      setError('Please fill in all fields');
+    if (!trimmedEmail) {
+      setError('Please enter your email address');
       setIsLoading(false);
       return;
     }
@@ -35,33 +33,41 @@ export default function EmailRegistration({ onRegister, onSwitchToLogin }: Props
       return;
     }
 
-    if (trimmedPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
-      setIsLoading(false);
-      return;
-    }
-
-    if (trimmedPassword !== trimmedConfirm) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const response = await apiClient.register(trimmedEmail, trimmedPassword);
-      onRegister(response.token, response.user);
+      await apiClient.requestVerificationCode(trimmedEmail, false);
+      setShowVerification(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : 'Failed to send verification code');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleResendCode = async (): Promise<void> => {
+    await apiClient.requestVerificationCode(email.trim(), false);
+  };
+
+  const handleVerificationBack = () => {
+    setShowVerification(false);
+  };
+
+  if (showVerification) {
+    return (
+      <EmailVerification
+        email={email.trim()}
+        isLogin={false}
+        onVerify={onRegister}
+        onBack={handleVerificationBack}
+        onResendCode={handleResendCode}
+      />
+    );
+  }
+
   return (
     <div className="email-registration">
       <div className="auth-card">
         <h1>🔐 Create Account</h1>
-        <p>Create your account to securely store and sync your passwords across devices</p>
+        <p>Enter your email address to create your account. We'll send you a verification code to complete registration.</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -77,34 +83,10 @@ export default function EmailRegistration({ onRegister, onSwitchToLogin }: Props
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter your password"
-              required
-            />
-          </div>
-
           {error && <div className="error">{error}</div>}
 
           <button type="submit" className="btn btn-primary" disabled={isLoading}>
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {isLoading ? 'Sending Code...' : 'Send Verification Code'}
           </button>
         </form>
 

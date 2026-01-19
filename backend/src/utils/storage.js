@@ -49,12 +49,12 @@ export const getUserByEmail = (email) => {
   return users[email.toLowerCase()] || null;
 };
 
-export const createUser = (email, hashedPassword) => {
+export const createUser = (email, passwordHash = '') => {
   const users = getUsers();
   const user = {
     id: crypto.lib.WordArray.random(16).toString(),
     email: email.toLowerCase(),
-    password: hashedPassword,
+    password: passwordHash, // Empty for email-only auth
     createdAt: new Date().toISOString(),
     lastLogin: null
   };

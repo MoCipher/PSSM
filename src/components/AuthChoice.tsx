@@ -10,7 +10,7 @@ export default function AuthChoice({ onChooseLogin, onChooseRegister }: Props) {
     <div className="auth-choice">
       <div className="choice-card">
         <h1>🔐 Password Manager</h1>
-        <p>Securely store and sync your passwords across all your devices</p>
+        <p>Securely store and sync your passwords across all your devices using email verification</p>
 
         <div className="choice-buttons">
           <button onClick={onChooseLogin} className="btn btn-primary">
