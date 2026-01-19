@@ -1,19 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  PasswordEntry,
-  hasMasterPassword,
-  verifyMasterPassword,
-  setMasterPassword as storageSetMasterPassword,
-  loadPasswords,
-  savePasswords
-} from './utils/storage';
+import { PasswordEntry } from './utils/storage';
 import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
-import MasterPasswordSetup from './components/MasterPasswordSetup';
-import MasterPasswordLogin from './components/MasterPasswordLogin';
+import EmailRegistration from './components/EmailRegistration';
+import EmailLogin from './components/EmailLogin';
+import AuthChoice from './components/AuthChoice';
 import ExportImport from './components/ExportImport';
 import NavBar from './components/NavBar';
-import AccountManagement from './components/AccountManagement';
 import SecurityDashboard from './components/SecurityDashboard';
 import useFocusTrap from './hooks/useFocusTrap';
 import { useRef } from 'react';
@@ -21,10 +14,20 @@ import './App.css';
 import { ToastProvider } from './components/Toast';
 import { getSavedTheme, saveTheme, applyTheme, Theme } from './utils/theme';
 import { serverSearch } from './utils/search';
+import {
+  isAuthenticated,
+  loadPasswordsFromCloud,
+  syncPasswords,
+  savePasswordToCloud,
+  deletePasswordFromCloud,
+  logout,
+  initializeSync,
+  stopSync
+} from './utils/cloudStorage';
+import { apiClient } from './utils/api';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [masterPassword, setMasterPasswordState] = useState<string>('');
+  const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'choice' | 'register' | 'login'>('checking');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -42,18 +45,38 @@ function App() {
   useFocusTrap(accountPanelRef);
   useFocusTrap(dashboardPanelRef);
 
+  // Check authentication on app start
   useEffect(() => {
-    if (isAuthenticated && masterPassword) {
-      (async () => {
+    const checkAuth = async () => {
+      if (isAuthenticated()) {
         try {
-          const loaded = await loadPasswords(masterPassword);
-          setPasswords(loaded);
+          // Verify token is still valid
+          await apiClient.verifyToken();
+
+          // Load passwords from cloud
+          const loadedPasswords = await loadPasswordsFromCloud();
+          setPasswords(loadedPasswords);
+          setAuthState('authenticated');
+
+          // Start sync
+          initializeSync();
         } catch (error) {
-          console.error('Failed to load passwords:', error);
+          console.error('Authentication failed:', error);
+          logout();
+          setAuthState('choice');
         }
-      })();
-    }
-  }, [isAuthenticated, masterPassword]);
+      } else {
+        setAuthState('choice');
+      }
+    };
+
+    checkAuth();
+
+    // Cleanup sync on unmount
+    return () => {
+      stopSync();
+    };
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
@@ -102,25 +125,42 @@ function App() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  const handleMasterPasswordSet = async (password: string) => {
-    await storageSetMasterPassword(password); // Store verifier in localStorage
-    setMasterPasswordState(password); // Set React state for encryption/decryption
-    setIsAuthenticated(true);
+  const handleRegister = async (token: string, _userData: any) => {
+    apiClient.setToken(token);
+    setAuthState('authenticated');
+
+    // Load any existing passwords from cloud
+    const loadedPasswords = await loadPasswordsFromCloud();
+    setPasswords(loadedPasswords);
+
+    // Start sync
+    initializeSync();
   };
 
-  const handleMasterPasswordVerify = async (password: string) => {
-    if (await verifyMasterPassword(password)) {
-      setMasterPasswordState(password); // Set React state for encryption/decryption
-      setIsAuthenticated(true);
-    } else {
-      throw new Error('Incorrect master password');
-    }
+  const handleLogin = async (token: string, _userData: any) => {
+    apiClient.setToken(token);
+    setAuthState('authenticated');
+
+    // Load passwords from cloud
+    const loadedPasswords = await loadPasswordsFromCloud();
+    setPasswords(loadedPasswords);
+
+    // Start sync
+    initializeSync();
+  };
+
+  const handleLogout = () => {
+    logout();
+    setPasswords([]);
+    setAuthState('choice');
+    setShowForm(false);
+    setEditingPassword(null);
   };
 
   const handleSavePassword = useCallback(async (entry: Omit<PasswordEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!masterPassword) {
-      console.error('No master password available');
-      alert('Error: No master password available. Please log in again.');
+    if (authState !== 'authenticated') {
+      console.error('Not authenticated');
+      alert('Error: Not authenticated. Please log in again.');
       return;
     }
 
@@ -143,23 +183,46 @@ function App() {
       }
 
       setPasswords(updated);
-      await savePasswords(updated, masterPassword);
+
+      // Save to cloud
+      if (editingPassword) {
+        await savePasswordToCloud(updated.find(p => p.id === editingPassword.id)!);
+      } else {
+        const newEntry = updated.find(p => !passwords.some(existing => existing.id === p.id));
+        if (newEntry) {
+          await savePasswordToCloud(newEntry);
+        }
+      }
+
+      // Sync with server
+      await syncPasswords(updated);
+
       setShowForm(false);
       setEditingPassword(null);
     } catch (error) {
       console.error('Failed to save password:', error);
       alert('Failed to save password. Please try again.');
     }
-  }, [masterPassword, passwords, editingPassword]);
+  }, [authState, passwords, editingPassword]);
 
   const handleDeletePassword = useCallback(async (id: string) => {
-    if (!masterPassword) return;
+    if (authState !== 'authenticated') return;
     if (!confirm('Are you sure you want to delete this password?')) return;
 
-    const updated = passwords.filter(p => p.id !== id);
-    setPasswords(updated);
-    await savePasswords(updated, masterPassword);
-  }, [masterPassword, passwords]);
+    try {
+      const updated = passwords.filter(p => p.id !== id);
+      setPasswords(updated);
+
+      // Delete from cloud
+      await deletePasswordFromCloud(id);
+
+      // Sync with server
+      await syncPasswords(updated);
+    } catch (error) {
+      console.error('Failed to delete password:', error);
+      alert('Failed to delete password. Please try again.');
+    }
+  }, [authState, passwords]);
 
   const handleImport = (imported: PasswordEntry[]) => {
     setPasswords(imported);
@@ -170,26 +233,53 @@ function App() {
     setShowForm(true);
   }, []);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setMasterPasswordState('');
-    setPasswords([]);
-    setShowForm(false);
-    setEditingPassword(null);
-  };
-
-  if (!hasMasterPassword()) {
+  // Handle authentication states
+  if (authState === 'checking') {
     return (
       <ToastProvider>
-        <MasterPasswordSetup onSet={handleMasterPasswordSet} />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          fontSize: '1.2rem',
+          color: '#666'
+        }}>
+          Loading...
+        </div>
       </ToastProvider>
     );
   }
 
-  if (!isAuthenticated) {
+  if (authState === 'choice') {
     return (
       <ToastProvider>
-        <MasterPasswordLogin onVerify={handleMasterPasswordVerify} />
+        <AuthChoice
+          onChooseLogin={() => setAuthState('login')}
+          onChooseRegister={() => setAuthState('register')}
+        />
+      </ToastProvider>
+    );
+  }
+
+  if (authState === 'register') {
+    return (
+      <ToastProvider>
+        <EmailRegistration
+          onRegister={handleRegister}
+          onSwitchToLogin={() => setAuthState('login')}
+        />
+      </ToastProvider>
+    );
+  }
+
+  if (authState === 'login') {
+    return (
+      <ToastProvider>
+        <EmailLogin
+          onLogin={handleLogin}
+          onSwitchToRegister={() => setAuthState('register')}
+        />
       </ToastProvider>
     );
   }
@@ -225,7 +315,7 @@ function App() {
               <button onClick={() => setShowForm(true)} className="btn btn-primary">
                 + Add Password
               </button>
-              <ExportImport passwords={passwords} masterPassword={masterPassword} onImport={handleImport} />
+              <ExportImport passwords={passwords} masterPassword="" onImport={handleImport} />
             </div>
             <PasswordList
               passwords={[...passwords.filter(p => {
@@ -249,7 +339,7 @@ function App() {
         <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="account-management-title">
           <div ref={accountPanelRef} className="overlay-panel" >
             <button className="close-btn" onClick={() => setShowAccount(false)}>Close</button>
-            <AccountManagement masterPassword={masterPassword} onPasswordChanged={(p) => setMasterPasswordState(p)} />
+            <div>Account management coming soon...</div>
           </div>
         </div>
       )}

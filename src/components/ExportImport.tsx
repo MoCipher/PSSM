@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { PasswordEntry, exportPasswords, exportPasswordsCSV, importPasswords, importPasswordsCSV, savePasswords } from '../utils/storage';
+import { PasswordEntry, exportPasswords, exportPasswordsCSV, importPasswords, importPasswordsCSV } from '../utils/storage';
+import { syncPasswords } from '../utils/cloudStorage';
 import './ExportImport.css';
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
   onImport: (passwords: PasswordEntry[]) => void;
 }
 
-export default function ExportImport({ passwords, masterPassword, onImport }: Props) {
+export default function ExportImport({ passwords, masterPassword: _masterPassword, onImport }: Props) {
   const [showMenu, setShowMenu] = useState(false);
   const [importError, setImportError] = useState('');
 
@@ -49,12 +50,12 @@ export default function ExportImport({ passwords, masterPassword, onImport }: Pr
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const content = event.target?.result as string;
           const imported = importPasswords(content);
           const merged = [...passwords, ...imported];
-          savePasswords(merged, masterPassword);
+          await syncPasswords(merged);
           onImport(merged);
           setImportError('');
           setShowMenu(false);
@@ -77,12 +78,12 @@ export default function ExportImport({ passwords, masterPassword, onImport }: Pr
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const content = event.target?.result as string;
           const imported = importPasswordsCSV(content);
           const merged = [...passwords, ...imported];
-          savePasswords(merged, masterPassword);
+          await syncPasswords(merged);
           onImport(merged);
           setImportError('');
           setShowMenu(false);

@@ -1,22 +1,33 @@
 # Password Manager
 
-A secure, client-side password manager with 2FA support, export/import functionality, and master password protection.
+A secure password manager with email-based authentication, device synchronization, 2FA support, and export/import functionality.
 
 ## Features
 
-- 🔐 Master password protection
-- 🔑 Secure password storage with encryption
+- 📧 Email-based authentication (registration/login)
+- 🔄 Automatic sync across devices
+- 🔐 Secure password storage with encryption
 - 📤 Export passwords (JSON/CSV)
 - 📥 Import passwords (JSON/CSV)
 - 🔒 2FA (TOTP) support for all passwords
-- 💾 Client-side storage (no server required)
+- ☁️ Cloud storage with local caching
 
 ## Development
 
+### Frontend Setup
 ```bash
 npm install
 npm run dev
 ```
+
+### Backend Setup
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+The backend will run on `http://localhost:3001` and the frontend on `http://localhost:5173`.
 
 ## Build
 
@@ -76,26 +87,36 @@ CF_API_TOKEN=... CF_PAGES_PROJECT_NAME=... CF_ACCOUNT_ID=... wrangler pages publ
 
 ## Usage
 
-1. **First Time Setup**: Create a master password (minimum 8 characters)
-2. **Add Passwords**: Click "Add Password" and fill in the details
-3. **Enable 2FA**: Check "Enable 2FA" and enter your TOTP secret (base32 format)
-4. **Copy Credentials**: Click the 📋 icon next to any field to copy to clipboard
-5. **Export/Import**: Use the Export/Import menu to backup or restore your passwords
-6. **2FA Codes**: 2FA codes are automatically generated and can be refreshed
+1. **Account Setup**: Create an account with your email address or sign in to an existing account
+2. **Device Sync**: Your passwords automatically sync across all your devices
+3. **Add Passwords**: Click "Add Password" and fill in the details
+4. **Enable 2FA**: Check "Enable 2FA" and enter your TOTP secret (base32 format)
+5. **Copy Credentials**: Click the 📋 icon next to any field to copy to clipboard
+6. **Export/Import**: Use the Export/Import menu to backup or restore your passwords
+7. **2FA Codes**: 2FA codes are automatically generated and can be refreshed
 
 ## Security Notes
 
 - All passwords are encrypted client-side using AES-256 encryption
-- Master password is never stored (only a hash is saved)
+- User passwords are hashed with bcrypt on the server
+- JWT tokens are used for API authentication
 - 2FA secrets are encrypted along with passwords
-- All data is stored locally in your browser's localStorage
-- No data is sent to any server - everything runs client-side
-- Remember to export your passwords regularly as a backup!
+- Password data is stored encrypted on the server
+- End-to-end encryption ensures only you can access your passwords
+- Automatic sync keeps your devices in sync securely
 
 ## Technology Stack
 
+### Frontend
 - **React 18** - UI framework
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
 - **CryptoJS** - Encryption library
 - **otpauth** - TOTP/2FA implementation
+
+### Backend
+- **Node.js** - Runtime
+- **Express** - Web framework
+- **bcryptjs** - Password hashing
+- **jsonwebtoken** - JWT authentication
+- **CORS** - Cross-origin support
