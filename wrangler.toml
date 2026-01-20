@@ -10,11 +10,11 @@ directory = "./dist"
 # D1 Database for data storage
 [[d1_databases]]
 binding = "DB"
-database_name = "password-manager-db"
+database_name = "pssm1"
 database_id = "your-database-id"
 
 # Environment variables
 [vars]
 JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
 EMAIL_FROM = "noreply@yourdomain.com"
-EMAIL_API_KEY = "your-email-api-key"
+EMAIL_API_KEY = "your-sendgrid-api-key"
