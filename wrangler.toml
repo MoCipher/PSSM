@@ -11,7 +11,7 @@ directory = "./dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "pssm"
-database_id = "your-database-id"
+database_id = "282d2d0e-e59a-4e97-a7fd-ce608b4c7d82"
 
 # Environment variables
 [vars]
