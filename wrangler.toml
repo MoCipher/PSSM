@@ -10,7 +10,7 @@ directory = "./dist"
 # D1 Database for data storage
 [[d1_databases]]
 binding = "DB"
-database_name = "pssm1"
+database_name = "pssm"
 database_id = "your-database-id"
 
 # Environment variables
