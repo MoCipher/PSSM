@@ -1,0 +1,27 @@
+name = "password-manager-backend"
+main = "src/worker.js"
+compatibility_date = "2024-01-15"
+
+# Environment variables
+[vars]
+JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
+
+# Email configuration - replace with your email provider details
+EMAIL_FROM = "your-email@example.com"
+EMAIL_API_KEY = "your-email-api-key"  # For services like SendGrid, Mailgun, etc.
+
+# KV namespaces for data storage
+[[kv_namespaces]]
+binding = "USERS"
+id = "your-users-kv-namespace-id"
+preview_id = "your-users-kv-namespace-id"
+
+[[kv_namespaces]]
+binding = "PASSWORDS"
+id = "your-passwords-kv-namespace-id"
+preview_id = "your-passwords-kv-namespace-id"
+
+[[kv_namespaces]]
+binding = "VERIFICATION_CODES"
+id = "your-verification-kv-namespace-id"
+preview_id = "your-verification-kv-namespace-id"

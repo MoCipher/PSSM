@@ -1,15 +1,31 @@
-# Wrangler configuration (template)
-# Replace the placeholders below with your Cloudflare account/project details.
+# Cloudflare Pages + Workers configuration
 
 name = "pssm"
 account_id = "3335093fd32547addce581d41f67ffb0"
-
-# Compatibility date helps Wrangler choose the runtime behavior
 compatibility_date = "2026-01-13"
 
+# Frontend (Pages)
 [assets]
 directory = "./dist"
 
-# If you plan to publish Workers (not Pages), uncomment and configure below:
-# type = "javascript"
-# workers_dev = true
+# Backend (Worker)
+[[workers]]
+name = "password-manager-backend"
+main = "backend/src/worker.js"
+
+  [workers.vars]
+  JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
+  EMAIL_FROM = "your-email@example.com"
+  EMAIL_API_KEY = "your-email-api-key"
+
+  [[workers.kv_namespaces]]
+  binding = "USERS"
+  id = "your-users-kv-namespace-id"
+
+  [[workers.kv_namespaces]]
+  binding = "PASSWORDS"
+  id = "your-passwords-kv-namespace-id"
+
+  [[workers.kv_namespaces]]
+  binding = "VERIFICATION_CODES"
+  id = "your-verification-kv-namespace-id"
