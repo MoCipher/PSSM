@@ -66,9 +66,24 @@ Your app now deploys **both frontend and backend** to Cloudflare using Pages + W
 
 ### Quick Deploy (Recommended)
 
+**Step 1: Deploy Backend Worker**
 ```bash
-# Run the deployment script
+./deploy-worker.sh
+```
+
+**Step 2: Deploy Frontend Pages**
+```bash
 ./deploy.sh
+```
+
+Or deploy manually:
+```bash
+# Backend worker
+cd backend && wrangler deploy --config wrangler-worker.toml
+
+# Frontend pages
+npm run build
+wrangler pages deploy dist
 ```
 
 ### Manual Deployment
@@ -97,20 +112,34 @@ Replace the placeholder IDs with your actual KV namespace IDs.
 npm run build
 wrangler pages deploy dist
 
-**5. Configure Environment Variables:**
+**3. Set Up KV Namespaces:**
 ```bash
-# In Cloudflare Pages settings, add:
-VITE_API_URL=https://password-manager-backend.your-subdomain.workers.dev/api
-```
-
-**6. Set Up KV Namespaces:**
-```bash
-# Create storage namespaces
+# Create storage namespaces for the worker
 wrangler kv:namespace create "USERS"
 wrangler kv:namespace create "PASSWORDS"
 wrangler kv:namespace create "VERIFICATION_CODES"
 
-# Update wrangler.toml with the returned IDs
+# Copy the returned IDs to backend/wrangler-worker.toml
+```
+
+**4. Configure Worker Environment Variables:**
+Go to Cloudflare Dashboard → Workers → password-manager-backend → Settings → Variables:
+```bash
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+EMAIL_FROM=noreply@yourdomain.com
+EMAIL_API_KEY=your-email-service-api-key
+```
+
+**5. Configure Pages Environment Variables:**
+In Cloudflare Pages settings, add:
+```bash
+VITE_API_URL=https://password-manager-backend.your-subdomain.workers.dev/api
+```
+
+**6. Deploy:**
+```bash
+./deploy-worker.sh  # Deploy backend first
+./deploy.sh         # Deploy frontend
 ```
 ```
 
