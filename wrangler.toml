@@ -1,9 +1,20 @@
-# Frontend (Pages) configuration only
-# Deploy backend separately as a Worker
+# Cloudflare Pages + Functions (Full-stack on Cloudflare)
 
 name = "pssm"
 account_id = "3335093fd32547addce581d41f67ffb0"
-compatibility_date = "2026-01-13"
+compatibility_date = "2024-01-15"
 
 [assets]
 directory = "./dist"
+
+# D1 Database for data storage
+[[d1_databases]]
+binding = "DB"
+database_name = "password-manager-db"
+database_id = "your-database-id"
+
+# Environment variables
+[vars]
+JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
+EMAIL_FROM = "noreply@yourdomain.com"
+EMAIL_API_KEY = "your-email-api-key"

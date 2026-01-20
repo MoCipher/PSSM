@@ -45,14 +45,11 @@ EMAIL_FROM=noreply@yourdomain.com
 EMAIL_API_KEY=your-mailgun-api-key
 ```
 
-### Option 3: Any Email Service
-Update the `sendVerificationEmail` function in `backend/src/worker.js` to integrate with your preferred email service.
+### Custom Email Service
+Update the `sendVerificationEmail` function in `utils/auth.js` to integrate with your preferred email service.
 
 ### Setting Environment Variables:
-1. Go to Cloudflare Dashboard → Workers
-2. Select your "password-manager-backend" worker
-3. Go to Settings → Variables
-4. Add your email configuration variables
+In Cloudflare Pages settings → Environment variables, add your email configuration.
 
 ## Build
 
@@ -60,33 +57,18 @@ Update the `sendVerificationEmail` function in `backend/src/worker.js` to integr
 npm run build
 ```
 
-## Deploy to Cloudflare (Full Stack)
+## Deploy to Cloudflare (Complete Full-Stack)
 
-Your app now deploys **both frontend and backend** to Cloudflare using Pages + Workers!
+This app runs **entirely on Cloudflare** using Pages + Functions + D1 Database!
 
-### Quick Deploy (Recommended)
+### Quick Deploy
 
-**Step 1: Deploy Backend Worker**
 ```bash
-./deploy-worker.sh
-```
-
-**Step 2: Deploy Frontend Pages**
-```bash
+# One-command deployment
 ./deploy.sh
 ```
 
-Or deploy manually:
-```bash
-# Backend worker
-cd backend && wrangler deploy --config wrangler-worker.toml
-
-# Frontend pages
-npm run build
-wrangler pages deploy dist
-```
-
-### Manual Deployment
+### Manual Setup
 
 **1. Install Wrangler CLI:**
 ```bash
@@ -94,18 +76,17 @@ npm install -g wrangler
 wrangler auth login
 ```
 
-**2. Create KV Namespaces:**
+**2. Create D1 Database:**
 ```bash
-# Create namespaces for data storage
-wrangler kv:namespace create "USERS"
-wrangler kv:namespace create "PASSWORDS"
-wrangler kv:namespace create "VERIFICATION_CODES"
+# Create database
+wrangler d1 create password-manager-db
 
-# Copy the IDs to wrangler.toml
+# Run schema
+wrangler d1 execute password-manager-db --file=schema.sql
 ```
 
 **3. Update wrangler.toml:**
-Replace the placeholder IDs with your actual KV namespace IDs.
+Replace `your-database-id` with your actual D1 database ID from step 2.
 
 **4. Deploy:**
 ```bash
@@ -122,24 +103,18 @@ wrangler kv:namespace create "VERIFICATION_CODES"
 # Copy the returned IDs to backend/wrangler-worker.toml
 ```
 
-**4. Configure Worker Environment Variables:**
-Go to Cloudflare Dashboard → Workers → password-manager-backend → Settings → Variables:
+**4. Configure Environment Variables:**
+In Cloudflare Pages settings, add:
 ```bash
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 EMAIL_FROM=noreply@yourdomain.com
 EMAIL_API_KEY=your-email-service-api-key
 ```
 
-**5. Configure Pages Environment Variables:**
-In Cloudflare Pages settings, add:
+**5. Deploy:**
 ```bash
-VITE_API_URL=https://password-manager-backend.your-subdomain.workers.dev/api
-```
-
-**6. Deploy:**
-```bash
-./deploy-worker.sh  # Deploy backend first
-./deploy.sh         # Deploy frontend
+npm run build
+wrangler pages deploy dist
 ```
 ```
 

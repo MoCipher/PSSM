@@ -23,13 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Backend data and dependencies
-backend/data/
-backend/package-lock.json
-backend/.env
-backend/.env.local
-
-# Environment variables
+# Cloudflare
+.wrangler/
 .env
 .env.local
 .env.production

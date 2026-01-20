@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Deploying Password Manager to Cloudflare (Pages + Worker)..."
+echo "🚀 Deploying Password Manager to Cloudflare (Pages + Functions + D1)..."
 
 # Build frontend
 echo "📦 Building frontend..."
@@ -12,29 +12,15 @@ if ! command -v wrangler &> /dev/null; then
     npm install -g wrangler
 fi
 
-# Deploy Worker first
-echo "⚙️ Deploying backend worker..."
-cd backend
-wrangler deploy
-
-# Get worker URL
-WORKER_URL=$(wrangler deploy --dry-run 2>/dev/null | grep "https://" | head -1)
-if [ -z "$WORKER_URL" ]; then
-    WORKER_URL="https://password-manager-backend.your-subdomain.workers.dev"
-fi
-
-echo "🔗 Worker deployed at: $WORKER_URL"
-
-# Deploy Pages
-echo "📄 Deploying frontend to Pages..."
-cd ..
-wrangler pages deploy dist --compatibility-date 2024-01-15
+# Deploy to Cloudflare Pages + Functions
+echo "☁️ Deploying to Cloudflare Pages with Functions..."
+wrangler pages deploy dist
 
 echo "✅ Deployment complete!"
 echo ""
 echo "🔧 Next steps:"
-echo "1. Set VITE_API_URL=$WORKER_URL/api in Cloudflare Pages environment variables"
-echo "2. Update KV namespace IDs in backend/wrangler-worker.toml"
-echo "3. Configure your email service API key in Worker settings"
+echo "1. Create D1 database and run schema.sql"
+echo "2. Configure email service API key in Pages settings"
+echo "3. Test your app at the deployed URL"
 echo ""
 echo "📚 See README.md for detailed setup instructions"
