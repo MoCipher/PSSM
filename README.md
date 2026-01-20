@@ -31,24 +31,28 @@ The backend will run on `http://localhost:3001` and the frontend on `http://loca
 
 ## Email Configuration
 
-For email verification to work, configure your email settings in `backend/.env`:
+Configure any email service in your Cloudflare Worker environment variables:
 
+### Option 1: SendGrid (Recommended)
 ```bash
-# Email settings for verification codes
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_SECURE=false
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-
-# Optional: Verification code expiry (default: 300000ms = 5 minutes)
-VERIFICATION_CODE_EXPIRY=300000
+EMAIL_FROM=noreply@yourdomain.com
+EMAIL_API_KEY=your-sendgrid-api-key
 ```
 
-### Gmail Setup:
-1. Enable 2-factor authentication on your Gmail account
-2. Generate an App Password: https://support.google.com/accounts/answer/185833
-3. Use your Gmail address as EMAIL_USER and the App Password as EMAIL_PASS
+### Option 2: Mailgun
+```bash
+EMAIL_FROM=noreply@yourdomain.com
+EMAIL_API_KEY=your-mailgun-api-key
+```
+
+### Option 3: Any Email Service
+Update the `sendVerificationEmail` function in `backend/src/worker.js` to integrate with your preferred email service.
+
+### Setting Environment Variables:
+1. Go to Cloudflare Dashboard → Workers
+2. Select your "password-manager-backend" worker
+3. Go to Settings → Variables
+4. Add your email configuration variables
 
 ## Build
 
@@ -56,33 +60,59 @@ VERIFICATION_CODE_EXPIRY=300000
 npm run build
 ```
 
-## Deploy to Cloudflare Pages
+## Deploy to Cloudflare (Full Stack)
 
-### Option 1: Via Git Integration (Recommended)
+Your app now deploys **both frontend and backend** to Cloudflare using Pages + Workers!
 
-1. Push your code to GitHub, GitLab, or Bitbucket
-2. Go to Cloudflare Dashboard → Pages → Create a project
-3. Connect your repository
-4. Configure build settings:
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-   - **Root directory**: `/` (leave empty)
-5. Click "Save and Deploy"
-
-### Option 2: Via Wrangler CLI
+### Quick Deploy (Recommended)
 
 ```bash
-npm install -g wrangler
-npm run build
-wrangler pages deploy dist
+# Run the deployment script
+./deploy.sh
 ```
 
-### Option 3: Manual Upload
+### Manual Deployment
 
-1. Build the project: `npm run build`
-2. Go to Cloudflare Dashboard → Pages → Create a project → Upload assets
-3. Upload the contents of the `dist` folder
-4. Deploy!
+**1. Install Wrangler CLI:**
+```bash
+npm install -g wrangler
+wrangler auth login
+```
+
+**2. Create KV Namespaces:**
+```bash
+# Create namespaces for data storage
+wrangler kv:namespace create "USERS"
+wrangler kv:namespace create "PASSWORDS"
+wrangler kv:namespace create "VERIFICATION_CODES"
+
+# Copy the IDs to wrangler.toml
+```
+
+**3. Update wrangler.toml:**
+Replace the placeholder IDs with your actual KV namespace IDs.
+
+**4. Deploy:**
+```bash
+npm run build
+wrangler pages deploy dist
+
+**5. Configure Environment Variables:**
+```bash
+# In Cloudflare Pages settings, add:
+VITE_API_URL=https://password-manager-backend.your-subdomain.workers.dev/api
+```
+
+**6. Set Up KV Namespaces:**
+```bash
+# Create storage namespaces
+wrangler kv:namespace create "USERS"
+wrangler kv:namespace create "PASSWORDS"
+wrangler kv:namespace create "VERIFICATION_CODES"
+
+# Update wrangler.toml with the returned IDs
+```
+```
 
 ### Automated GitHub Actions deployment
 
