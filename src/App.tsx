@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { PasswordEntry } from './utils/storage';
 import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
-import EmailRegistration from './components/EmailRegistration';
 import EmailLogin from './components/EmailLogin';
 import AuthChoice from './components/AuthChoice';
 import ExportImport from './components/ExportImport';
@@ -27,7 +26,7 @@ import {
 import { apiClient } from './utils/api';
 
 function App() {
-  const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'choice' | 'register' | 'login'>('checking');
+  const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'choice' | 'login'>('checking');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -124,18 +123,6 @@ function App() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
-
-  const handleRegister = async (token: string, _userData: any) => {
-    apiClient.setToken(token);
-    setAuthState('authenticated');
-
-    // Load any existing passwords from cloud
-    const loadedPasswords = await loadPasswordsFromCloud();
-    setPasswords(loadedPasswords);
-
-    // Start sync
-    initializeSync();
-  };
 
   const handleLogin = async (token: string, _userData: any) => {
     apiClient.setToken(token);
@@ -256,18 +243,6 @@ function App() {
       <ToastProvider>
         <AuthChoice
           onChooseLogin={() => setAuthState('login')}
-          onChooseRegister={() => setAuthState('register')}
-        />
-      </ToastProvider>
-    );
-  }
-
-  if (authState === 'register') {
-    return (
-      <ToastProvider>
-        <EmailRegistration
-          onRegister={handleRegister}
-          onSwitchToLogin={() => setAuthState('login')}
         />
       </ToastProvider>
     );
@@ -278,7 +253,6 @@ function App() {
       <ToastProvider>
         <EmailLogin
           onLogin={handleLogin}
-          onSwitchToRegister={() => setAuthState('register')}
         />
       </ToastProvider>
     );

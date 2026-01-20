@@ -1,5 +1,11 @@
 import { generateVerificationCode, sendVerificationEmail } from '../../../utils/auth.js';
 
+// Authorized users
+const AUTHORIZED_USERS = [
+  'spoass@icloud.com',
+  'laila.torresanz@hotmail.com'
+];
+
 export async function onRequest({ request, env }) {
   // Handle CORS
   if (request.method === 'OPTIONS') {
@@ -22,33 +28,46 @@ export async function onRequest({ request, env }) {
   try {
     const { email } = await request.json();
 
-    if (!email || !email.includes('@')) {
-      return new Response(JSON.stringify({ error: 'Valid email required' }), {
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    // Check if user exists
-    const user = await env.DB.prepare(
-      'SELECT id FROM users WHERE email = ?'
-    ).bind(email.toLowerCase()).first();
+    const normalizedEmail = email.toLowerCase();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Account not found' }), {
-        status: 404,
+    // Check if email is authorized
+    if (!AUTHORIZED_USERS.includes(normalizedEmail)) {
+      return new Response(JSON.stringify({ error: 'Access denied. Unauthorized email.' }), {
+        status: 403,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
 
+    // Initialize user if they don't exist
+    let user = await env.DB.prepare(
+      'SELECT * FROM users WHERE email = ?'
+    ).bind(normalizedEmail).first();
+
+    if (!user) {
+      // Create user
+      const userId = crypto.randomUUID();
+      await env.DB.prepare(
+        'INSERT INTO users (id, email, created_at) VALUES (?, ?, ?)'
+      ).bind(userId, normalizedEmail, new Date().toISOString()).run();
+
+      user = { id: userId, email: normalizedEmail };
+    }
+
     // Generate verification code
-    const code = generateVerificationCode();
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Store verification code
     await env.DB.prepare(
       'INSERT OR REPLACE INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)'
     ).bind(
-      email.toLowerCase(),
+      normalizedEmail,
       code,
       'login',
       Date.now() + (5 * 60 * 1000)
@@ -59,7 +78,7 @@ export async function onRequest({ request, env }) {
 
     return new Response(JSON.stringify({
       message: 'Verification code sent',
-      email: email.toLowerCase()
+      email: normalizedEmail
     }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });

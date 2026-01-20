@@ -5,10 +5,9 @@ import './EmailLogin.css';
 
 interface Props {
   onLogin: (token: string, user: any) => void;
-  onSwitchToRegister: () => void;
 }
 
-export default function EmailLogin({ onLogin, onSwitchToRegister }: Props) {
+export default function EmailLogin({ onLogin }: Props) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -90,8 +89,8 @@ export default function EmailLogin({ onLogin, onSwitchToRegister }: Props) {
           </button>
         </form>
 
-        <div className="auth-switch">
-          <p>Don't have an account? <button onClick={onSwitchToRegister} className="link-btn">Create Account</button></p>
+        <div className="auth-info">
+          <p>Only authorized users can access this application.</p>
         </div>
       </div>
     </div>

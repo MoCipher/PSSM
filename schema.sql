@@ -1,6 +1,6 @@
 -- Cloudflare D1 Database Schema for Password Manager
 
--- Users table
+-- Users table (only authorized users: spoass@icloud.com, laila.torresanz@hotmail.com)
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE users (
 CREATE TABLE verification_codes (
   email TEXT NOT NULL,
   code TEXT NOT NULL,
-  type TEXT NOT NULL, -- 'register' or 'login'
+  type TEXT NOT NULL, -- 'login' only (no registration)
   expires_at INTEGER NOT NULL,
   PRIMARY KEY (email, type)
 );
@@ -36,3 +36,8 @@ CREATE TABLE passwords (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_passwords_user_id ON passwords(user_id);
 CREATE INDEX idx_verification_codes_email_type ON verification_codes(email, type);
+
+-- Initialize authorized users (run after creating database)
+-- INSERT OR IGNORE INTO users (id, email, created_at) VALUES
+--   ('user-spoass', 'spoass@icloud.com', datetime('now')),
+--   ('user-laila', 'laila.torresanz@hotmail.com', datetime('now'));

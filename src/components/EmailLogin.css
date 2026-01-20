@@ -93,14 +93,14 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.auth-switch {
+.auth-info {
   text-align: center;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e1e5e9;
 }
 
-.auth-switch p {
+.auth-info p {
   margin: 0;
   color: #666;
   font-size: 0.9rem;
