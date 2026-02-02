@@ -1,6 +1,6 @@
 # Cloudflare Pages + Functions (Full-stack on Cloudflare)
 
-name = "pssm"
+name = "pass"
 account_id = "3335093fd32547addce581d41f67ffb0"
 compatibility_date = "2024-01-15"
 
@@ -11,7 +11,7 @@ directory = "./dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "pssm"
-database_id = "282d2d0e-e59a-4e97-a7fd-ce608b4c7d82"
+database_id = "54dc6d7d-1f71-46a9-957f-40fc1e590832"
 
 # Environment variables
 [vars]
