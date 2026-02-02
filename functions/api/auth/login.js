@@ -1,11 +1,5 @@
 import { generateVerificationCode, sendVerificationEmail } from '../../../utils/auth.js';
 
-// Authorized users
-const AUTHORIZED_USERS = [
-  'spoass@icloud.com',
-  'laila.torresanz@hotmail.com'
-];
-
 export async function onRequest({ request, env }) {
   // Handle CORS
   if (request.method === 'OPTIONS') {
@@ -45,14 +39,6 @@ export async function onRequest({ request, env }) {
     }
 
     const normalizedEmail = email.toLowerCase();
-
-    // Check if email is authorized
-    if (!AUTHORIZED_USERS.includes(normalizedEmail)) {
-      return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
-    }
 
     // Initialize user if they don't exist
     let user = await env.DB.prepare(
