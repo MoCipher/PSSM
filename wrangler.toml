@@ -12,5 +12,5 @@ database_id = "54dc6d7d-1f71-46a9-957f-40fc1e590832"
 
 # Environment variables
 [vars]
-JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
 EMAIL_FROM = "noreply@pass-8qw.pages.dev"
+# Note: Set JWT_SECRET in Cloudflare Pages dashboard → Settings → Environment variables
