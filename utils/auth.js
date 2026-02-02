@@ -52,12 +52,12 @@ export async function sendVerificationEmail(email, code, env) {
         personalizations: [
           {
             to: [{ email: email }],
-            dkim_domain: 'pssm.pages.dev', // Change to your custom domain
+            dkim_domain: 'mocipher.com',
             dkim_selector: 'mailchannels',
           },
         ],
         from: {
-          email: env.EMAIL_FROM || 'noreply@pssm.pages.dev',
+          email: env.EMAIL_FROM || 'noreply@pass.mocipher.com',
           name: 'Password Manager',
         },
         subject: 'Your Password Manager Verification Code',
