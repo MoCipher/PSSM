@@ -16,4 +16,6 @@ JWT_SECRET = "a290802d8f7ad6b17a93cfd04e72823dd04cdb44e1bd8b266388031dc80d0ec214
 EMAIL_FROM = "noreply@mocipher.com"
 EMAIL_SERVICE = "resend"
 RESEND_API_KEY = "re_gp7kCvxX_EEWKdpnLwtnXK6Y5VVUWZWVN"
-MASTER_PASSWORD = "HjR5wJ@j!v5Y*6_k8Qs="
+
+# IMPORTANT: Set MASTER_PASSWORD as a secret in Cloudflare Pages settings
+# DO NOT commit passwords to version control
