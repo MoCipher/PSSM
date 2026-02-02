@@ -9,11 +9,12 @@
   --primary-dark: #4f46e5;
   --primary-light: #818cf8;
   --secondary: #8b5cf6;
+  --tertiary: #ec4899;
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
-  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --bg-gradient-alt: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --bg-gradient-alt: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
   --card-bg: rgba(255, 255, 255, 0.98);
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
@@ -21,6 +22,7 @@
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.2);
 }
 
 /* Dark theme overrides when [data-theme="dark"] is set on <html> */
@@ -84,6 +86,17 @@ body {
   }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -101,6 +114,33 @@ body {
   to {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
   }
 }
 
@@ -189,6 +229,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   gap: 0.5rem;
   position: relative;
   overflow: hidden;
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow);
 }
 
 .btn::before {
@@ -198,6 +241,49 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   left: 50%;
   width: 0;
   height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -5px rgba(99, 102, 241, 0.4);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn.btn-secondary {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.btn.btn-secondary:hover {
+  background: rgba(99, 102, 241, 0.2);
+  box-shadow: 0 12px 24px -5px rgba(99, 102, 241, 0.3);
+}
+
+.btn.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn.btn-danger {
+  background: var(--danger);
+}
+
+.btn.btn-danger:hover {
+  box-shadow: 0 12px 24px -5px rgba(239, 68, 68, 0.4);
+}
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
