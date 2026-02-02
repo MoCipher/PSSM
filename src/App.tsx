@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PasswordEntry } from './utils/storage';
 import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
-import EmailLogin from './components/EmailLogin';
-import AuthChoice from './components/AuthChoice';
+import PasswordLogin from './components/PasswordLogin';
 import ExportImport from './components/ExportImport';
 import NavBar from './components/NavBar';
 import SecurityDashboard from './components/SecurityDashboard';
@@ -26,7 +25,7 @@ import {
 import { apiClient } from './utils/api';
 
 function App() {
-  const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'choice' | 'login'>('checking');
+  const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'login'>('checking');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -40,7 +39,6 @@ function App() {
   const accountPanelRef = useRef<HTMLDivElement | null>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
 
-  // Call focus trap hooks unconditionally (they check ref.current internally)
   useFocusTrap(accountPanelRef);
   useFocusTrap(dashboardPanelRef);
 
@@ -49,29 +47,23 @@ function App() {
     const checkAuth = async () => {
       if (isAuthenticated()) {
         try {
-          // Verify token is still valid
           await apiClient.verifyToken();
-
-          // Load passwords from cloud
           const loadedPasswords = await loadPasswordsFromCloud();
           setPasswords(loadedPasswords);
           setAuthState('authenticated');
-
-          // Start sync
           initializeSync();
         } catch (error) {
           console.error('Authentication failed:', error);
           logout();
-          setAuthState('choice');
+          setAuthState('login');
         }
       } else {
-        setAuthState('choice');
+        setAuthState('login');
       }
     };
 
     checkAuth();
 
-    // Cleanup sync on unmount
     return () => {
       stopSync();
     };
@@ -82,7 +74,6 @@ function App() {
     saveTheme(theme);
   }, [theme]);
 
-  // Run server search when enabled and query changes
   useEffect(() => {
     let mounted = true;
     if (!serverSearchEnabled || !search.trim()) {
@@ -96,14 +87,14 @@ function App() {
         if (mounted) setServerResults(results || []);
       } catch (err) {
         console.error('Server search failed', err);
-        if (mounted) setServerResults([]);
       }
     })();
 
-    return () => { mounted = false; };
+    return () => { 
+      mounted = false;
+    };
   }, [serverSearchEnabled, search]);
 
-  // Keyboard shortcut for help (?) and close overlays with Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const active = document.activeElement;
@@ -127,19 +118,15 @@ function App() {
   const handleLogin = async (token: string, _userData: any) => {
     apiClient.setToken(token);
     setAuthState('authenticated');
-
-    // Load passwords from cloud
     const loadedPasswords = await loadPasswordsFromCloud();
     setPasswords(loadedPasswords);
-
-    // Start sync
     initializeSync();
   };
 
   const handleLogout = () => {
     logout();
     setPasswords([]);
-    setAuthState('choice');
+    setAuthState('login');
     setShowForm(false);
     setEditingPassword(null);
   };
@@ -171,7 +158,6 @@ function App() {
 
       setPasswords(updated);
 
-      // Save to cloud
       if (editingPassword) {
         await savePasswordToCloud(updated.find(p => p.id === editingPassword.id)!);
       } else {
@@ -181,7 +167,6 @@ function App() {
         }
       }
 
-      // Sync with server
       await syncPasswords(updated);
 
       setShowForm(false);
@@ -199,11 +184,7 @@ function App() {
     try {
       const updated = passwords.filter(p => p.id !== id);
       setPasswords(updated);
-
-      // Delete from cloud
       await deletePasswordFromCloud(id);
-
-      // Sync with server
       await syncPasswords(updated);
     } catch (error) {
       console.error('Failed to delete password:', error);
@@ -220,7 +201,6 @@ function App() {
     setShowForm(true);
   }, []);
 
-  // Handle authentication states
   if (authState === 'checking') {
     return (
       <ToastProvider>
@@ -238,22 +218,10 @@ function App() {
     );
   }
 
-  if (authState === 'choice') {
-    return (
-      <ToastProvider>
-        <AuthChoice
-          onChooseLogin={() => setAuthState('login')}
-        />
-      </ToastProvider>
-    );
-  }
-
   if (authState === 'login') {
     return (
       <ToastProvider>
-        <EmailLogin
-          onLogin={handleLogin}
-        />
+        <PasswordLogin onLogin={handleLogin} />
       </ToastProvider>
     );
   }
@@ -273,58 +241,60 @@ function App() {
           onSearch={(q) => setSearch(q)}
         />
 
-      <main className="app-main">
-        {showForm ? (
-          <PasswordForm
-            entry={editingPassword}
-            onSave={handleSavePassword}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingPassword(null);
-            }}
-          />
-        ) : (
-          <>
-            <div className="actions-bar">
-              <button onClick={() => setShowForm(true)} className="btn btn-primary">
-                + Add Password
-              </button>
-              <ExportImport passwords={passwords} masterPassword="" onImport={handleImport} />
-            </div>
-            <PasswordList
-              passwords={[...passwords.filter(p => {
-                const q = (search || '').trim().toLowerCase();
-                if (!q) return true;
-                return (
-                  (p.name || '').toLowerCase().includes(q) ||
-                  (p.username || '').toLowerCase().includes(q) ||
-                  (p.url || '').toLowerCase().includes(q)
-                );
-              }), ...serverResults]}
-              onEdit={handleEditPassword}
-              onDelete={handleDeletePassword}
-              onAdd={() => setShowForm(true)}
-              query={search}
+        <main className="app-main">
+          {showForm ? (
+            <PasswordForm
+              entry={editingPassword}
+              onSave={handleSavePassword}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingPassword(null);
+              }}
             />
-          </>
+          ) : (
+            <>
+              <div className="actions-bar">
+                <button onClick={() => setShowForm(true)} className="btn btn-primary">
+                  + Add Password
+                </button>
+                <ExportImport passwords={passwords} masterPassword="" onImport={handleImport} />
+              </div>
+              <PasswordList
+                passwords={[...passwords.filter(p => {
+                  const q = (search || '').trim().toLowerCase();
+                  if (!q) return true;
+                  return (
+                    (p.name || '').toLowerCase().includes(q) ||
+                    (p.username || '').toLowerCase().includes(q) ||
+                    (p.url || '').toLowerCase().includes(q)
+                  );
+                }), ...serverResults]}
+                onEdit={handleEditPassword}
+                onDelete={handleDeletePassword}
+                onAdd={() => setShowForm(true)}
+                query={search}
+              />
+            </>
+          )}
+        </main>
+
+        {showAccount && (
+          <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="account-management-title">
+            <div ref={accountPanelRef} className="overlay-panel">
+              <button className="close-btn" onClick={() => setShowAccount(false)}>Close</button>
+              <div>Account management coming soon...</div>
+            </div>
+          </div>
         )}
-      </main>
-      {showAccount && (
-        <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="account-management-title">
-          <div ref={accountPanelRef} className="overlay-panel" >
-            <button className="close-btn" onClick={() => setShowAccount(false)}>Close</button>
-            <div>Account management coming soon...</div>
+
+        {showDashboard && (
+          <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="security-dashboard-title">
+            <div ref={dashboardPanelRef} className="overlay-panel large">
+              <button className="close-btn" onClick={() => setShowDashboard(false)}>Close</button>
+              <SecurityDashboard passwords={passwords} />
+            </div>
           </div>
-        </div>
-      )}
-      {showDashboard && (
-        <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="security-dashboard-title">
-          <div ref={dashboardPanelRef} className="overlay-panel large">
-            <button className="close-btn" onClick={() => setShowDashboard(false)}>Close</button>
-            <SecurityDashboard passwords={passwords} />
-          </div>
-        </div>
-      )}
+        )}
       </div>
     </ToastProvider>
   );

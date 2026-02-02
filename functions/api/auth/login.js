@@ -1,4 +1,4 @@
-import { generateVerificationCode, sendVerificationEmail } from '../../../utils/auth.js';
+import { createToken } from '../../../utils/auth.js';
 
 export async function onRequest({ request, env }) {
   // Handle CORS
@@ -20,67 +20,47 @@ export async function onRequest({ request, env }) {
   }
 
   try {
-    // Check if DB binding exists
-    if (!env.DB) {
-      console.error('D1 binding not found. env.DB is undefined');
-      return new Response(JSON.stringify({ error: 'Database connection failed: D1 binding not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
-    }
+    const { password } = await request.json();
 
-    const { email } = await request.json();
-
-    if (!email) {
-      return new Response(JSON.stringify({ error: 'Email required' }), {
+    if (!password) {
+      return new Response(JSON.stringify({ error: 'Password required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    const normalizedEmail = email.toLowerCase();
-
-    // Initialize user if they don't exist
-    let user = await env.DB.prepare(
-      'SELECT * FROM users WHERE email = ?'
-    ).bind(normalizedEmail).first();
-
-    if (!user) {
-      // Create user
-      const userId = crypto.randomUUID();
-      await env.DB.prepare(
-        'INSERT INTO users (id, email, created_at) VALUES (?, ?, ?)'
-      ).bind(userId, normalizedEmail, new Date().toISOString()).run();
-
-      user = { id: userId, email: normalizedEmail };
+    // Check password against environment variable
+    const MASTER_PASSWORD = env.MASTER_PASSWORD;
+    if (!MASTER_PASSWORD) {
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
 
-    // Generate verification code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    if (password !== MASTER_PASSWORD) {
+      return new Response(JSON.stringify({ error: 'Invalid password' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
 
-    // Store verification code
-    await env.DB.prepare(
-      'INSERT OR REPLACE INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)'
-    ).bind(
-      normalizedEmail,
-      code,
-      'login',
-      Date.now() + (5 * 60 * 1000)
-    ).run();
-
-    // Send email
-    await sendVerificationEmail(email, code, env);
+    // Authentication successful - create token
+    const token = createToken('user-master', 'admin@mocipher.com', env.JWT_SECRET);
 
     return new Response(JSON.stringify({
-      message: 'Verification code sent',
-      email: normalizedEmail
+      token,
+      user: {
+        id: 'user-master',
+        email: 'admin@mocipher.com',
+      },
     }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
-
   } catch (error) {
     console.error('Login error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: 'Login failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
