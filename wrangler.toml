@@ -12,7 +12,8 @@ database_id = "54dc6d7d-1f71-46a9-957f-40fc1e590832"
 
 # Environment variables
 [vars]
-JWT_SECRET = "a290802d8f7ad6b17a93cfd04e72823dd04cdb44e1bd8b266388031dc80d0ec2146246e8eb807fe7747082a3331707e0c8eab219927a60eec0b10f73394369fd"
 
-# IMPORTANT: Set MASTER_PASSWORD as a secret in Cloudflare Pages settings
-# DO NOT commit passwords to version control
+# IMPORTANT: Set these as secrets in Cloudflare Pages settings
+# - JWT_SECRET (for token signing)
+# - MASTER_PASSWORD (for authentication)
+# DO NOT commit secrets to version control
