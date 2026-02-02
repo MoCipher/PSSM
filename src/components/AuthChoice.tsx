@@ -9,20 +9,12 @@ export default function AuthChoice({ onChooseLogin }: Props) {
     <div className="auth-choice">
       <div className="choice-card">
         <h1>🔐 Password Manager</h1>
-        <p>Personal password manager for authorized users only</p>
+        <p>Secure password management for everyone</p>
 
         <div className="choice-buttons">
           <button onClick={onChooseLogin} className="btn btn-primary">
             Sign In
           </button>
-        </div>
-
-        <div className="authorized-users">
-          <p><strong>Authorized Users:</strong></p>
-          <ul>
-            <li>spoass@icloud.com</li>
-            <li>laila.torresanz@hotmail.com</li>
-          </ul>
         </div>
 
         <div className="features">

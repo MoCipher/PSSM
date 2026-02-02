@@ -61,31 +61,6 @@
   border: 2px solid #e9ecef;
 }
 
-.authorized-users {
-  text-align: center;
-  margin: 2rem 0;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.authorized-users p {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.authorized-users ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.authorized-users li {
-  font-size: 0.9rem;
-  color: #333;
-  font-family: monospace;
-}
 
 .features {
   display: flex;

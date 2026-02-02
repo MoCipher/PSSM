@@ -90,7 +90,7 @@ export default function EmailLogin({ onLogin }: Props) {
         </form>
 
         <div className="auth-info">
-          <p>Only authorized users can access this application.</p>
+          <p>Create an account or sign in to manage your passwords securely.</p>
         </div>
       </div>
     </div>
