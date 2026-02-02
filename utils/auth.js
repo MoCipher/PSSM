@@ -39,111 +39,56 @@ export function verifyToken(token, secret) {
 }
 
 export async function sendVerificationEmail(email, code, env) {
-  // Configure your email service here
+  // Use Cloudflare Email Workers with MailChannels
   console.log(`Sending verification code ${code} to ${email}`);
 
-  // Example configurations for different email services:
+  try {
+    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [
+          {
+            to: [{ email: email }],
+          },
+        ],
+        from: {
+          email: env.EMAIL_FROM || 'noreply@pass-8qw.pages.dev',
+          name: 'Password Manager',
+        },
+        subject: 'Your Password Manager Verification Code',
+        content: [
+          {
+            type: 'text/html',
+            value: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Password Manager Verification</h2>
+                <p>Hello!</p>
+                <p>Your verification code is:</p>
+                <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+                  <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
+                </div>
+                <p>This code will expire in 5 minutes.</p>
+                <p>If you didn't request this code, please ignore this email.</p>
+                <br>
+                <p>Best regards,<br>Your Password Manager</p>
+              </div>
+            `,
+          },
+        ],
+      }),
+    });
 
-  // SendGrid
-  /*
-  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.EMAIL_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      personalizations: [{ to: [{ email }] }],
-      from: { email: env.EMAIL_FROM },
-      subject: 'Your Password Manager Verification Code',
-      content: [{
-        type: 'text/html',
-        value: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Manager Verification</h2>
-            <p>Hello!</p>
-            <p>Your verification code is:</p>
-            <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-              <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
-            </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this code, please ignore this email.</p>
-            <br>
-            <p>Best regards,<br>Your Password Manager</p>
-          </div>
-        `
-      }]
-    })
-  });
-  */
+    if (!response.ok) {
+      throw new Error(`MailChannels API error: ${response.status}`);
+    }
 
-  // Mailgun
-  /*
-  const response = await fetch(`https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${btoa(`api:${env.EMAIL_API_KEY}`)}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      from: env.EMAIL_FROM,
-      to: email,
-      subject: 'Your Password Manager Verification Code',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Password Manager Verification</h2>
-          <p>Hello!</p>
-          <p>Your verification code is:</p>
-          <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-            <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
-          </div>
-          <p>This code will expire in 5 minutes.</p>
-          <p>If you didn't request this code, please ignore this email.</p>
-          <br>
-          <p>Best regards,<br>Your Password Manager</p>
-        </div>
-      `
-    })
-  });
-  */
-
-  // SendGrid integration (recommended for Cloudflare)
-  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.EMAIL_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      personalizations: [{ to: [{ email }] }],
-      from: { email: env.EMAIL_FROM },
-      subject: 'Your Password Manager Verification Code',
-      content: [{
-        type: 'text/html',
-        value: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Manager Verification</h2>
-            <p>Hello!</p>
-            <p>Your verification code is:</p>
-            <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-              <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
-            </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this code, please ignore this email.</p>
-            <br>
-            <p>Best regards,<br>Your Password Manager</p>
-          </div>
-        `
-      }]
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('SendGrid error:', errorText);
-    throw new Error(`Failed to send email: ${errorText}`);
+    console.log('Email sent successfully via MailChannels');
+    return true;
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    throw error;
   }
-
-  console.log(`Verification email sent successfully to ${email}`);
-  return true;
 }

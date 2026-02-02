@@ -26,6 +26,15 @@ export async function onRequest({ request, env }) {
   }
 
   try {
+    // Check if DB binding exists
+    if (!env.DB) {
+      console.error('D1 binding not found. env.DB is undefined');
+      return new Response(JSON.stringify({ error: 'Database connection failed: D1 binding not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
     const { email } = await request.json();
 
     if (!email) {
@@ -39,8 +48,8 @@ export async function onRequest({ request, env }) {
 
     // Check if email is authorized
     if (!AUTHORIZED_USERS.includes(normalizedEmail)) {
-      return new Response(JSON.stringify({ error: 'Access denied. Unauthorized email.' }), {
-        status: 403,
+      return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
