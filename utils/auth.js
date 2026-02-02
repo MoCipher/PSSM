@@ -39,68 +39,57 @@ export function verifyToken(token, secret) {
 }
 
 export async function sendVerificationEmail(email, code, env) {
-  // MailChannels email sending via Cloudflare Workers
+  // Try Resend first (most reliable), fallback to logging
   console.log(`Sending verification code ${code} to ${email}`);
 
-  try {
-    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        personalizations: [
-          {
-            to: [{ email: email }],
-            dkim_domain: 'mocipher.com',
-            dkim_selector: 'mailchannels',
-          },
-        ],
-        from: {
-          email: env.EMAIL_FROM || 'noreply@pass.mocipher.com',
-          name: 'Password Manager',
+  // Try Resend if API key is available
+  if (env.RESEND_API_KEY) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
         },
-        subject: 'Your Password Manager Verification Code',
-        content: [
-          {
-            type: 'text/html',
-            value: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Password Manager Verification</h2>
-                <p>Hello!</p>
-                <p>Your verification code is:</p>
-                <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-                  <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
-                </div>
-                <p>This code will expire in 5 minutes.</p>
-                <p>If you didn't request this code, please ignore this email.</p>
-                <br>
-                <p>Best regards,<br>Your Password Manager</p>
+        body: JSON.stringify({
+          from: env.EMAIL_FROM || 'noreply@pass.mocipher.com',
+          to: email,
+          subject: 'Your Password Manager Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Password Manager Verification</h2>
+              <p>Hello!</p>
+              <p>Your verification code is:</p>
+              <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
               </div>
-            `,
-          },
-        ],
-      }),
-    });
+              <p>This code will expire in 5 minutes.</p>
+              <p>If you didn't request this code, please ignore this email.</p>
+              <br>
+              <p>Best regards,<br>Your Password Manager</p>
+            </div>
+          `,
+        }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('MailChannels error:', errorText);
-      // For now, log the code so you can still login
-      console.log(`===========================================`);
-      console.log(`Verification code for ${email}: ${code}`);
-      console.log(`===========================================`);
-      throw new Error(`MailChannels API error: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Resend API error:', errorText);
+        throw new Error(`Resend API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Email sent successfully via Resend:', data.id);
+      return true;
+    } catch (error) {
+      console.error('Failed to send email via Resend:', error);
+      // Fall through to logging fallback
     }
-
-    console.log('Email sent successfully via MailChannels');
-    return true;
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    // Log the code anyway so login isn't blocked
-    console.log(`===========================================`);
-    console.log(`Verification code for ${email}: ${code}`);
-    console.log(`===========================================`);
-    return true; // Don't block login
   }
+
+  // Fallback: Log the code so users can still test (remove in production)
+  console.log(`===========================================`);
+  console.log(`Verification code for ${email}: ${code}`);
+  console.log(`===========================================`);
+  return true;
 }
