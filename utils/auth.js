@@ -39,14 +39,68 @@ export function verifyToken(token, secret) {
 }
 
 export async function sendVerificationEmail(email, code, env) {
-  // For now, just log the verification code
-  // In production, configure MailChannels with proper domain verification
-  console.log(`===========================================`);
-  console.log(`Verification code for ${email}: ${code}`);
-  console.log(`===========================================`);
-  
-  // TODO: Set up MailChannels with SPF/DKIM records for your domain
-  // See: https://support.mailchannels.com/hc/en-us/articles/4565898358413-Configuring-SPF
-  
-  return true;
+  // MailChannels email sending via Cloudflare Workers
+  console.log(`Sending verification code ${code} to ${email}`);
+
+  try {
+    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [
+          {
+            to: [{ email: email }],
+            dkim_domain: 'pssm.pages.dev', // Change to your custom domain
+            dkim_selector: 'mailchannels',
+          },
+        ],
+        from: {
+          email: env.EMAIL_FROM || 'noreply@pssm.pages.dev',
+          name: 'Password Manager',
+        },
+        subject: 'Your Password Manager Verification Code',
+        content: [
+          {
+            type: 'text/html',
+            value: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Password Manager Verification</h2>
+                <p>Hello!</p>
+                <p>Your verification code is:</p>
+                <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+                  <span style="font-size: 32px; font-weight: bold; color: #333; letter-spacing: 5px;">${code}</span>
+                </div>
+                <p>This code will expire in 5 minutes.</p>
+                <p>If you didn't request this code, please ignore this email.</p>
+                <br>
+                <p>Best regards,<br>Your Password Manager</p>
+              </div>
+            `,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('MailChannels error:', errorText);
+      // For now, log the code so you can still login
+      console.log(`===========================================`);
+      console.log(`Verification code for ${email}: ${code}`);
+      console.log(`===========================================`);
+      throw new Error(`MailChannels API error: ${response.status}`);
+    }
+
+    console.log('Email sent successfully via MailChannels');
+    return true;
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    // Log the code anyway so login isn't blocked
+    console.log(`===========================================`);
+    console.log(`Verification code for ${email}: ${code}`);
+    console.log(`===========================================`);
+    return true; // Don't block login
+  }
 }
