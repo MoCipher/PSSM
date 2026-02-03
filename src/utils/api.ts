@@ -104,7 +104,7 @@ class ApiClient {
   }
 
   async syncPasswords(passwords: any[], lastSyncTimestamp?: string): Promise<PasswordSyncResponse> {
-    return this.request('/passwords/sync', {
+    return this.request('/passwords', {
       method: 'POST',
       body: JSON.stringify({ passwords, lastSyncTimestamp }),
     });
