@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { User, Shield, Sliders, LogOut, Trash2, Download } from 'lucide-react';
 import './AccountManagement.css';
+import { useConfirm } from './ConfirmDialog';
 
 interface Props {
   onLogout: () => void;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function AccountManagement({ onLogout, onClose }: Props) {
+  const confirm = useConfirm();
   const [displayName, setDisplayName] = useState('');
   const [autoLockMinutes, setAutoLockMinutes] = useState(10);
   const [clipboardClearSeconds, setClipboardClearSeconds] = useState(30);
@@ -38,8 +40,15 @@ export default function AccountManagement({ onLogout, onClose }: Props) {
     setTimeout(() => setStatus(''), 2000);
   };
 
-  const clearLocalCache = () => {
-    if (!confirm('This will clear local preferences. Continue?')) return;
+  const clearLocalCache = async () => {
+    const ok = await confirm({
+      title: 'Clear local cache',
+      message: 'This will clear local preferences. Continue?',
+      confirmText: 'Clear',
+      cancelText: 'Cancel',
+      tone: 'danger'
+    });
+    if (!ok) return;
     resetPreferences();
   };
 

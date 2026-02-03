@@ -11,6 +11,7 @@ import useFocusTrap from './hooks/useFocusTrap';
 import { useRef } from 'react';
 import './App.css';
 import { ToastProvider } from './components/Toast';
+import { useConfirm } from './components/ConfirmDialog';
 import { getSavedTheme, saveTheme, applyTheme, Theme } from './utils/theme';
 import { serverSearch } from './utils/search';
 import {
@@ -26,6 +27,7 @@ import {
 import { apiClient } from './utils/api';
 
 function App() {
+  const confirm = useConfirm();
   const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'login'>('checking');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
@@ -186,7 +188,14 @@ function App() {
 
   const handleDeletePassword = useCallback(async (id: string) => {
     if (authState !== 'authenticated') return;
-    if (!confirm('Are you sure you want to delete this password?')) return;
+    const ok = await confirm({
+      title: 'Delete password',
+      message: 'Are you sure you want to delete this password?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      tone: 'danger'
+    });
+    if (!ok) return;
 
     try {
       const updated = passwords.filter(p => p.id !== id);
@@ -291,7 +300,6 @@ function App() {
         {showAccount && (
           <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="account-management-title">
             <div ref={accountPanelRef} className="overlay-panel">
-              <button className="close-btn" onClick={() => setShowAccount(false)}>Close</button>
               <AccountManagement
                 onLogout={handleLogout}
                 onClose={() => setShowAccount(false)}
@@ -303,7 +311,10 @@ function App() {
         {showDashboard && (
           <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="security-dashboard-title">
             <div ref={dashboardPanelRef} className="overlay-panel large">
-              <button className="close-btn" onClick={() => setShowDashboard(false)}>Close</button>
+              <div className="overlay-header">
+                <div />
+                <button className="close-btn" onClick={() => setShowDashboard(false)}>Close</button>
+              </div>
               <SecurityDashboard passwords={passwords} />
             </div>
           </div>

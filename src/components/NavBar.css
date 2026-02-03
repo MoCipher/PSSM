@@ -29,7 +29,7 @@
   padding: 0.45rem 0.6rem;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--bg-light);
 }
 
 .search-wrap svg {
@@ -53,9 +53,18 @@
   height: 36px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--bg-light);
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+[data-theme='dark'] .nav-bar {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+[data-theme='dark'] .icon-btn,
+[data-theme='dark'] .search-wrap {
+  background: #0f172a;
 }
 
 .icon-btn.active {

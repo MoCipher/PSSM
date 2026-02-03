@@ -4,6 +4,7 @@ import { PasswordEntry } from '../utils/storage';
 import { validateSecret, generateTOTPQRCode } from '../utils/totp';
 import './PasswordForm.css';
 import PasswordGenerator from './PasswordGenerator';
+import { useConfirm } from './ConfirmDialog';
 
 interface Props {
   entry: PasswordEntry | null;
@@ -23,6 +24,7 @@ export default function PasswordForm({ entry, onSave, onCancel }: Props) {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
+  const confirm = useConfirm();
 
   useEffect(() => {
     if (entry) {
@@ -77,7 +79,7 @@ export default function PasswordForm({ entry, onSave, onCancel }: Props) {
     setShowGenerator(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Trim the secret before saving
@@ -85,7 +87,12 @@ export default function PasswordForm({ entry, onSave, onCancel }: Props) {
     
     // Warn but don't prevent saving if secret is invalid
     if (trimmedSecret && !validateSecret(trimmedSecret)) {
-      const proceed = confirm('The 2FA secret format appears invalid. Do you want to save it anyway? (You can edit it later)');
+      const proceed = await confirm({
+        title: 'Invalid 2FA secret',
+        message: 'The 2FA secret format appears invalid. Do you want to save it anyway? You can edit it later.',
+        confirmText: 'Save anyway',
+        cancelText: 'Cancel'
+      });
       if (!proceed) {
         return;
       }
