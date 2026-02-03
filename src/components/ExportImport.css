@@ -95,8 +95,17 @@
 
 @media (max-width: 768px) {
   .export-import-menu {
-    right: auto;
+    right: 0;
     left: 0;
-    min-width: 200px;
+    min-width: unset;
+    width: calc(100vw - 32px);
+    margin: 0 16px;
+  }
+  
+  .menu-btn {
+    padding: 14px 16px;
+    min-height: 48px;
+  }
+}
   }
 }

@@ -33,9 +33,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg-gradient);
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   color: var(--text-primary);
   animation: gradientShift 15s ease infinite;
   background-size: 200% 200%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* iOS safe area support */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 @keyframes gradientShift {
@@ -137,6 +142,11 @@ input, textarea, button, select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+/* Prevent iOS zoom on input focus - all inputs must be 16px or larger */
+input, textarea, select {
+  font-size: 16px;
 }
 
 /* Remove default search decorations in WebKit */
