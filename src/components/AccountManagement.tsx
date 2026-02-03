@@ -1,141 +1,141 @@
-import React, { useState } from 'react';
-import './MasterPasswordSetup.css';
-import { changeMasterPassword, deleteAccount } from '../utils/storage';
+import { useEffect, useState } from 'react';
+import { User, Shield, Sliders, LogOut, Trash2, Download } from 'lucide-react';
+import './AccountManagement.css';
 
 interface Props {
-  masterPassword: string;
-  onPasswordChanged: (newPassword: string) => void;
+  onLogout: () => void;
+  onClose: () => void;
 }
 
-export default function AccountManagement({ masterPassword, onPasswordChanged }: Props) {
-  const [current, setCurrent] = useState('');
-  const [newPass, setNewPass] = useState('');
-  const [confirmNew, setConfirmNew] = useState('');
+export default function AccountManagement({ onLogout, onClose }: Props) {
+  const [displayName, setDisplayName] = useState('');
+  const [autoLockMinutes, setAutoLockMinutes] = useState(10);
+  const [clipboardClearSeconds, setClipboardClearSeconds] = useState(30);
   const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
-  const [biometricEnabled, setBiometricEnabled] = useState<boolean>(() => !!localStorage.getItem('password_manager_biometric'));
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setStatus('');
+  useEffect(() => {
+    setDisplayName(localStorage.getItem('pm_display_name') || '');
+    setAutoLockMinutes(Number(localStorage.getItem('pm_auto_lock') || 10));
+    setClipboardClearSeconds(Number(localStorage.getItem('pm_clipboard_clear') || 30));
+  }, []);
 
-    if (current.trim() !== masterPassword) {
-      setError('Current master password is incorrect');
-      return;
-    }
-
-    if (newPass.trim().length < 8) {
-      setError('New password must be at least 8 characters');
-      return;
-    }
-
-    if (newPass !== confirmNew) {
-      setError('New passwords do not match');
-      return;
-    }
-
-    try {
-      await changeMasterPassword(current, newPass);
-      onPasswordChanged(newPass);
-      setStatus('Master password updated');
-      setCurrent(''); setNewPass(''); setConfirmNew('');
-    } catch (err) {
-      console.error(err);
-      setError('Failed to change master password');
-    }
+  const savePreferences = () => {
+    localStorage.setItem('pm_display_name', displayName.trim());
+    localStorage.setItem('pm_auto_lock', String(autoLockMinutes));
+    localStorage.setItem('pm_clipboard_clear', String(clipboardClearSeconds));
+    setStatus('Preferences saved');
+    setTimeout(() => setStatus(''), 2000);
   };
 
-  const handleDelete = async () => {
-    if (!confirm('⚠️ This will permanently delete your account and all stored passwords. Proceed?')) return;
-    await deleteAccount();
-    window.location.reload();
+  const resetPreferences = () => {
+    localStorage.removeItem('pm_display_name');
+    localStorage.removeItem('pm_auto_lock');
+    localStorage.removeItem('pm_clipboard_clear');
+    setDisplayName('');
+    setAutoLockMinutes(10);
+    setClipboardClearSeconds(30);
+    setStatus('Preferences reset');
+    setTimeout(() => setStatus(''), 2000);
   };
 
-  const handleToggleBiometric = async () => {
-    if (!window.PublicKeyCredential) {
-      setError('Biometric/WebAuthn not supported in this browser');
-      return;
-    }
-
-    if (!biometricEnabled) {
-      // Try to register a credential (simplified)
-      try {
-        const publicKey: any = {
-          challenge: Uint8Array.from(window.crypto.getRandomValues(new Uint8Array(32))).buffer,
-          rp: { name: 'Password Manager' },
-          user: {
-            id: Uint8Array.from(Date.now().toString().split('').map(s => s.charCodeAt(0))).buffer,
-            name: 'user',
-            displayName: 'User'
-          },
-          pubKeyCredParams: [{ alg: -7, type: 'public-key' }]
-        };
-
-        const cred = await navigator.credentials.create({ publicKey });
-        if (cred) {
-          localStorage.setItem('password_manager_biometric', '1');
-          setBiometricEnabled(true);
-          setStatus('Biometric login enabled');
-        }
-      } catch (err) {
-        console.error(err);
-        setError('Failed to enable biometric login');
-      }
-    } else {
-      localStorage.removeItem('password_manager_biometric');
-      setBiometricEnabled(false);
-      setStatus('Biometric login disabled');
-    }
+  const clearLocalCache = () => {
+    if (!confirm('This will clear local preferences. Continue?')) return;
+    resetPreferences();
   };
 
   return (
     <div className="account-management" role="region" aria-labelledby="account-management-title">
-      <h3 id="account-management-title">Account Management</h3>
+      <div className="account-header">
+        <div>
+          <h3 id="account-management-title">Account Management</h3>
+          <p className="muted">Manage preferences, security, and session controls.</p>
+        </div>
+        <button onClick={onClose} className="btn btn-secondary">Close</button>
+      </div>
 
-      <section className="card">
-        <h4 id="change-password-title">Change Master Password</h4>
-        <form onSubmit={handleChangePassword} aria-labelledby="change-password-title">
-          <div className="form-group">
-            <label htmlFor="current-master">Current Master Password</label>
-            <input id="current-master" autoFocus type="password" value={current} onChange={e => setCurrent(e.target.value)} required aria-required="true" aria-label="Current master password" />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="new-master">New Master Password</label>
-            <input id="new-master" type="password" value={newPass} onChange={e => setNewPass(e.target.value)} required aria-required="true" aria-label="New master password" />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="confirm-master">Confirm New Password</label>
-            <input id="confirm-master" type="password" value={confirmNew} onChange={e => setConfirmNew(e.target.value)} required aria-required="true" aria-label="Confirm new master password" />
-          </div>
-
-          {error && <div className="error">{error}</div>}
-          {status && <div className="status">{status}</div>}
-
-          <div style={{ marginTop: 12 }}>
-            <button type="submit" className="btn btn-primary">Change Password</button>
-          </div>
-        </form>
-      </section>
-
-      <section className="card" style={{ marginTop: 16 }}>
-        <h4>Biometric Login</h4>
-        <p className="calm">Enable biometric login (WebAuthn) for faster access on supported devices.</p>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" onClick={handleToggleBiometric} className="btn btn-secondary">
-            {biometricEnabled ? 'Disable Biometric' : 'Enable Biometric'}
-          </button>
-          <div style={{ alignSelf: 'center', color: '#666' }}>{biometricEnabled ? 'Enabled' : 'Disabled'}</div>
+      <section className="account-card">
+        <div className="card-title">
+          <User size={18} />
+          <h4>Profile</h4>
+        </div>
+        <div className="grid">
+          <label className="field">
+            <span>Display name</span>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your name"
+            />
+          </label>
+          <label className="field">
+            <span>Default workspace</span>
+            <input type="text" value="Personal Vault" readOnly />
+          </label>
         </div>
       </section>
 
-      <section className="card" style={{ marginTop: 16 }}>
-        <h4>Recovery & Data</h4>
-        <p className="calm">You can export your encrypted vault via Export/Import. Keep a secure backup of your master password — it cannot be recovered.</p>
-        <div style={{ marginTop: 8 }}>
-          <button type="button" onClick={handleDelete} className="btn btn-danger">Delete Account</button>
+      <section className="account-card">
+        <div className="card-title">
+          <Shield size={18} />
+          <h4>Security</h4>
+        </div>
+        <div className="grid">
+          <label className="field">
+            <span>Auto‑lock (minutes)</span>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={autoLockMinutes}
+              onChange={(e) => setAutoLockMinutes(Number(e.target.value))}
+            />
+          </label>
+          <label className="field">
+            <span>Clipboard clear (seconds)</span>
+            <input
+              type="number"
+              min={5}
+              max={120}
+              value={clipboardClearSeconds}
+              onChange={(e) => setClipboardClearSeconds(Number(e.target.value))}
+            />
+          </label>
+        </div>
+        <p className="muted">Auto‑lock is client‑side and clears on logout.</p>
+      </section>
+
+      <section className="account-card">
+        <div className="card-title">
+          <Sliders size={18} />
+          <h4>Preferences</h4>
+        </div>
+        <div className="actions">
+          <button className="btn btn-primary" onClick={savePreferences}>Save Preferences</button>
+          <button className="btn btn-secondary" onClick={resetPreferences}>Reset to Default</button>
+          {status && <span className="status">{status}</span>}
+        </div>
+      </section>
+
+      <section className="account-card">
+        <div className="card-title">
+          <Download size={18} />
+          <h4>Data</h4>
+        </div>
+        <p className="muted">Use Export/Import on the main screen to back up or migrate passwords.</p>
+        <button className="btn btn-secondary" onClick={onClose}>Go to Vault</button>
+      </section>
+
+      <section className="account-card danger">
+        <div className="card-title">
+          <LogOut size={18} />
+          <h4>Session</h4>
+        </div>
+        <div className="actions">
+          <button className="btn btn-secondary" onClick={onLogout}>Log out</button>
+          <button className="btn btn-danger" onClick={clearLocalCache}>
+            <Trash2 size={16} /> Clear local cache
+          </button>
         </div>
       </section>
     </div>

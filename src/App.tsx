@@ -3,6 +3,7 @@ import { PasswordEntry } from './utils/storage';
 import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
 import PasswordLogin from './components/PasswordLogin';
+import AccountManagement from './components/AccountManagement';
 import ExportImport from './components/ExportImport';
 import NavBar from './components/NavBar';
 import SecurityDashboard from './components/SecurityDashboard';
@@ -33,14 +34,16 @@ function App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => getSavedTheme() || 'light');
   const [search, setSearch] = useState<string>('');
-  const [serverSearchEnabled, _setServerSearchEnabled] = useState<boolean>(false);
+  const [serverSearchEnabled, setServerSearchEnabled] = useState<boolean>(false);
   const [serverResults, setServerResults] = useState<PasswordEntry[]>([]);
-  const [_showHelp, setShowHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const accountPanelRef = useRef<HTMLDivElement | null>(null);
   const dashboardPanelRef = useRef<HTMLDivElement | null>(null);
+  const helpPanelRef = useRef<HTMLDivElement | null>(null);
 
   useFocusTrap(accountPanelRef);
   useFocusTrap(dashboardPanelRef);
+  useFocusTrap(helpPanelRef);
 
   // Check authentication on app start
   useEffect(() => {
@@ -129,6 +132,10 @@ function App() {
     setAuthState('login');
     setShowForm(false);
     setEditingPassword(null);
+  };
+
+  const handleToggleServerSearch = () => {
+    setServerSearchEnabled(prev => !prev);
   };
 
   const handleSavePassword = useCallback(async (entry: Omit<PasswordEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -231,7 +238,7 @@ function App() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <div className="app">
         <NavBar
-          title="🔐 Password Manager"
+          title="Password Manager"
           onAdd={() => setShowForm(true)}
           onOpenAccount={() => setShowAccount(true)}
           onOpenDashboard={() => setShowDashboard(true)}
@@ -239,6 +246,9 @@ function App() {
           toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
           onLogout={handleLogout}
           onSearch={(q) => setSearch(q)}
+          serverSearchEnabled={serverSearchEnabled}
+          onToggleServerSearch={handleToggleServerSearch}
+          onHelp={() => setShowHelp(true)}
         />
 
         <main className="app-main">
@@ -282,7 +292,10 @@ function App() {
           <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="account-management-title">
             <div ref={accountPanelRef} className="overlay-panel">
               <button className="close-btn" onClick={() => setShowAccount(false)}>Close</button>
-              <div>Account management coming soon...</div>
+              <AccountManagement
+                onLogout={handleLogout}
+                onClose={() => setShowAccount(false)}
+              />
             </div>
           </div>
         )}
@@ -292,6 +305,22 @@ function App() {
             <div ref={dashboardPanelRef} className="overlay-panel large">
               <button className="close-btn" onClick={() => setShowDashboard(false)}>Close</button>
               <SecurityDashboard passwords={passwords} />
+            </div>
+          </div>
+        )}
+        {showHelp && (
+          <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="keyboard-shortcuts-title">
+            <div ref={helpPanelRef} className="overlay-panel">
+              <button className="close-btn" onClick={() => setShowHelp(false)}>Close</button>
+              <div className="help-panel">
+                <h3 id="keyboard-shortcuts-title">Keyboard Shortcuts</h3>
+                <ul className="help-list">
+                  <li><span>Focus search</span><kbd>/</kbd></li>
+                  <li><span>Open help</span><kbd>?</kbd></li>
+                  <li><span>Close overlays</span><kbd>Esc</kbd></li>
+                </ul>
+                <p className="help-note">Server search can be toggled from the toolbar.</p>
+              </div>
             </div>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Copy, Check, Eye, EyeOff, RefreshCw, Edit3, Trash2, Link2 } from 'lucide-react';
 import { PasswordEntry } from '../utils/storage';
 import { generateTOTP } from '../utils/totp';
 import './PasswordList.css';
@@ -13,6 +14,16 @@ interface Props {
 }
 
 export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query }: Props) {
+    const getFaviconUrl = (url?: string) => {
+      if (!url) return null;
+      try {
+        const parsed = new URL(url);
+        return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=64`;
+      } catch {
+        return null;
+      }
+    };
+
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [totpCodes, setTotpCodes] = useState<Record<string, string>>({});
   const [totpTimers, setTotpTimers] = useState<Record<string, number>>({});
@@ -126,20 +137,32 @@ export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query
           );
         })
         .map((entry) => {
+          const faviconUrl = getFaviconUrl(entry.url);
           return (
             <div key={entry.id} className="password-card">
               <div className="password-header">
-                <div>
-                  <h3>{entry.name}</h3>
+                <div className="password-title">
+                  {faviconUrl ? (
+                    <img className="favicon" src={faviconUrl} alt="" aria-hidden="true" />
+                  ) : (
+                    <div className="favicon placeholder"><Link2 size={14} /></div>
+                  )}
+                  <div>
+                    <h3>{entry.name}</h3>
                   {entry.url && (
                     <a href={entry.url} target="_blank" rel="noopener noreferrer" className="url-link">
                       {entry.url}
                     </a>
                   )}
+                  </div>
                 </div>
                 <div className="card-actions">
-                  <button onClick={() => onEdit(entry)} className="btn btn-small">Edit</button>
-                  <button onClick={() => onDelete(entry.id)} className="btn btn-small btn-danger">Delete</button>
+                  <button onClick={() => onEdit(entry)} className="icon-btn" aria-label="Edit">
+                    <Edit3 size={16} />
+                  </button>
+                  <button onClick={() => onDelete(entry.id)} className="icon-btn danger" aria-label="Delete">
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
 
@@ -153,7 +176,7 @@ export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query
                       className="copy-btn"
                       title="Copy username"
                     >
-                      {copiedId === `${entry.id}-username` ? '✓' : '📋'}
+                      {copiedId === `${entry.id}-username` ? <Check size={14} /> : <Copy size={14} />}
                     </button>
                   </div>
                 </div>
@@ -169,14 +192,14 @@ export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query
                       className="toggle-btn"
                       title={visiblePasswords.has(entry.id) ? 'Hide password' : 'Show password'}
                     >
-                      {visiblePasswords.has(entry.id) ? '👁️' : '👁️‍🗨️'}
+                      {visiblePasswords.has(entry.id) ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
                     <button
                       onClick={() => copyToClipboard(entry.password, `${entry.id}-password`)}
                       className="copy-btn"
                       title="Copy password"
                     >
-                      {copiedId === `${entry.id}-password` ? '✓' : '📋'}
+                      {copiedId === `${entry.id}-password` ? <Check size={14} /> : <Copy size={14} />}
                     </button>
                   </div>
                 </div>
@@ -205,14 +228,14 @@ export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query
                         className="copy-btn"
                         title="Copy 2FA code"
                       >
-                        {copiedId === `${entry.id}-totp` ? '✓' : '📋'}
+                        {copiedId === `${entry.id}-totp` ? <Check size={14} /> : <Copy size={14} />}
                       </button>
                       <button
                         onClick={() => refreshTOTP(entry)}
                         className="refresh-btn"
                         title="Refresh code"
                       >
-                        🔄
+                        <RefreshCw size={14} />
                       </button>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Eye, EyeOff, Wand2 } from 'lucide-react';
 import { PasswordEntry } from '../utils/storage';
 import { validateSecret, generateTOTPQRCode } from '../utils/totp';
 import './PasswordForm.css';
@@ -147,10 +148,12 @@ export default function PasswordForm({ entry, onSave, onCancel }: Props) {
                 className="toggle-password-btn"
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            <button type="button" onClick={generatePassword} className="btn btn-small">Generate</button>
+            <button type="button" onClick={generatePassword} className="btn btn-small">
+              <Wand2 size={14} /> Generate
+            </button>
           </div>
         </div>
 

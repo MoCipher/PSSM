@@ -1,4 +1,15 @@
 import { useMemo, useEffect, useRef } from 'react';
+import {
+  Search,
+  Plus,
+  LayoutDashboard,
+  User,
+  Server,
+  Sun,
+  Moon,
+  HelpCircle,
+  LogOut
+} from 'lucide-react';
 import './NavBar.css';
 import debounce from '../utils/debounce';
 
@@ -16,7 +27,7 @@ interface Props {
   onHelp?: () => void;
 }
 
-export default function NavBar({ title = '🔐 Password Manager', onAdd, onOpenAccount, onOpenDashboard, theme, toggleTheme, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp }: Props) {
+export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccount, onOpenDashboard, theme, toggleTheme, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp }: Props) {
   const searchRef = useRef<HTMLInputElement | null>(null);
   const debounced = useMemo(() => onSearch ? debounce((q: string) => onSearch(q), 400) : null, [onSearch]);
 
@@ -52,21 +63,43 @@ export default function NavBar({ title = '🔐 Password Manager', onAdd, onOpenA
         <h1 className="nav-title">{title}</h1>
       </div>
       <div className="nav-actions">
-        <input aria-label="Search passwords" ref={searchRef} className="nav-search" placeholder="Search... (Press /)" onChange={handleSearch} title="Press / to focus" />
-        <button className="btn btn-small" onClick={onOpenDashboard} aria-label="Open dashboard">Dashboard</button>
-        <button className="btn btn-small" onClick={onOpenAccount} aria-label="Open account settings">Account</button>
-        <button className="btn btn-primary" onClick={onAdd} aria-label="Add password">+ Add</button>
+        <div className="search-wrap">
+          <Search size={16} />
+          <input
+            aria-label="Search passwords"
+            ref={searchRef}
+            className="nav-search"
+            placeholder="Search... (Press /)"
+            onChange={handleSearch}
+            title="Press / to focus"
+          />
+        </div>
+        <button className="icon-btn" onClick={onOpenDashboard} aria-label="Open dashboard">
+          <LayoutDashboard size={16} />
+        </button>
+        <button className="icon-btn" onClick={onOpenAccount} aria-label="Open account settings">
+          <User size={16} />
+        </button>
+        <button className="btn btn-primary" onClick={onAdd} aria-label="Add password">
+          <Plus size={16} /> Add
+        </button>
         <button
-          className={`btn btn-small ${serverSearchEnabled ? 'active' : ''}`}
+          className={`icon-btn ${serverSearchEnabled ? 'active' : ''}`}
           onClick={onToggleServerSearch}
           aria-pressed={serverSearchEnabled}
           aria-label="Toggle server search"
         >
-          Server
+          <Server size={16} />
         </button>
-        <button className="btn btn-secondary" onClick={toggleTheme} aria-label="Toggle theme">{theme === 'dark' ? 'Light' : 'Dark'}</button>
-        <button className="btn" onClick={onHelp} aria-label="Keyboard shortcuts">?</button>
-        <button className="btn" onClick={onLogout} aria-label="Logout">Logout</button>
+        <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+        <button className="icon-btn" onClick={onHelp} aria-label="Keyboard shortcuts">
+          <HelpCircle size={16} />
+        </button>
+        <button className="icon-btn" onClick={onLogout} aria-label="Logout">
+          <LogOut size={16} />
+        </button>
       </div>
     </header>
   );

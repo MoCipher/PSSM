@@ -164,6 +164,44 @@ body {
   color: var(--text);
 }
 
+.help-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.help-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.help-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-light);
+}
+
+.help-list kbd {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 0.85rem;
+}
+
+.help-note {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
 .skip-link {
   position: absolute;
   top: -40px;
