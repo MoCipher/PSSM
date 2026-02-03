@@ -58,6 +58,20 @@ export async function onRequest({ request, env, params }) {
     }
   };
 
+  const mapPasswordRow = (row) => ({
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    username: row.username,
+    password: row.password,
+    url: row.url,
+    notes: row.notes,
+    twoFactorSecret: row.two_factor_secret,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    lastUsed: row.last_used ?? null
+  });
+
   try {
     await ensureUser();
     await ensureEventsTable();
@@ -105,7 +119,7 @@ export async function onRequest({ request, env, params }) {
 
       return new Response(JSON.stringify({
         success: true,
-        password: updated
+        password: mapPasswordRow(updated)
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

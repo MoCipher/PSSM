@@ -1,4 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="45" fill="#667eea"/>
-  <text x="50" y="65" font-family="Arial" font-size="50" fill="white" text-anchor="middle">🔐</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="20" y1="16" x2="236" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"/>
+      <stop offset="0.5" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="64" y1="56" x2="192" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#E0E7FF" stop-opacity="0.6"/>
+    </linearGradient>
+    <filter id="soft" x="0" y="0" width="256" height="256" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="18" y="18" width="220" height="220" rx="56" fill="url(#bg)" filter="url(#soft)"/>
+
+  <!-- Shield body -->
+  <path d="M128 54c30 18 58 22 58 22v52c0 40-28 66-58 80-30-14-58-40-58-80V76s28-4 58-22Z" fill="url(#shine)"/>
+
+  <!-- Keyhole -->
+  <circle cx="128" cy="128" r="18" fill="#1E293B" fill-opacity="0.9"/>
+  <rect x="122" y="140" width="12" height="28" rx="6" fill="#1E293B" fill-opacity="0.9"/>
+
+  <!-- Spark accents -->
+  <path d="M196 86l6 2-6 2-2 6-2-6-6-2 6-2 2-6 2 6Z" fill="#E0F2FE"/>
+  <path d="M68 170l5 2-5 2-2 5-2-5-5-2 5-2 2-5 2 5Z" fill="#DBEAFE"/>
+</svg>
 </svg>

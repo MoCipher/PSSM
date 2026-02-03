@@ -131,9 +131,13 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
 
   return (
     <div className="export-import">
-      <button onClick={() => setShowMenu(!showMenu)} className="btn btn-secondary icon-btn" title="Import/Export passwords">
-        <MoreVertical size={20} />
-        <span>Import/Export</span>
+      <button
+        onClick={() => setShowMenu(!showMenu)}
+        className="icon-btn"
+        title="Import/Export passwords"
+        aria-label="Import/Export passwords"
+      >
+        <MoreVertical size={18} />
       </button>
       
       {showMenu && (

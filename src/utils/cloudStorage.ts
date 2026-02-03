@@ -7,6 +7,39 @@ export interface CloudStorageResult {
   error?: string;
 }
 
+const extractTotpSecret = (value: string | undefined): string | undefined => {
+  if (!value) return undefined;
+  if (!value.startsWith('otpauth://')) return value;
+  try {
+    const url = new URL(value);
+    const secret = url.searchParams.get('secret');
+    return secret || value;
+  } catch {
+    return value;
+  }
+};
+
+const normalizePasswordEntry = (entry: any): PasswordEntry => {
+  const rawSecret = entry.twoFactorSecret || entry.two_factor_secret;
+  const twoFactorSecret = extractTotpSecret(rawSecret);
+  return {
+    id: entry.id,
+    name: entry.name || '',
+    username: entry.username || '',
+    password: entry.password || '',
+    url: entry.url || undefined,
+    notes: entry.notes || undefined,
+    twoFactorSecret: twoFactorSecret || undefined,
+    createdAt: typeof entry.createdAt === 'number'
+      ? entry.createdAt
+      : (entry.created_at ? new Date(entry.created_at).getTime() : Date.now()),
+    updatedAt: typeof entry.updatedAt === 'number'
+      ? entry.updatedAt
+      : (entry.updated_at ? new Date(entry.updated_at).getTime() : Date.now()),
+    lastUsed: entry.lastUsed ?? entry.last_used ?? null,
+  };
+};
+
 // Initialize sync on app start
 let syncIntervalId: number | null = null;
 
@@ -34,7 +67,8 @@ export const syncPasswords = async (passwords?: PasswordEntry[], syncType?: stri
 
     // Otherwise, fetch the latest from server
     const response = await apiClient.getPasswords();
-    return { success: true, data: response.passwords };
+    const normalized = (response.passwords || []).map(normalizePasswordEntry);
+    return { success: true, data: normalized };
   } catch (error) {
     console.error('Sync failed:', error);
     return {
@@ -48,7 +82,7 @@ export const syncPasswords = async (passwords?: PasswordEntry[], syncType?: stri
 export const loadPasswordsFromCloud = async (): Promise<PasswordEntry[]> => {
   try {
     const response = await apiClient.getPasswords();
-    return response.passwords;
+    return (response.passwords || []).map(normalizePasswordEntry);
   } catch (error) {
     console.error('Failed to load passwords from cloud:', error);
     return [];

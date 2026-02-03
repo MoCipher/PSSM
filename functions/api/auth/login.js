@@ -49,11 +49,14 @@ export async function onRequest({ request, env }) {
     const userId = 'user-master';
     const userEmail = 'admin@mocipher.com';
 
-    // Ensure user exists in database (upsert)
+    // Ensure user exists in database (no REPLACE to avoid cascade delete)
     try {
       await env.DB.prepare(
-        'INSERT OR REPLACE INTO users (id, email, created_at, last_login) VALUES (?, ?, COALESCE((SELECT created_at FROM users WHERE id = ?), datetime(\'now\')), datetime(\'now\'))'
-      ).bind(userId, userEmail, userId).run();
+        'INSERT OR IGNORE INTO users (id, email, created_at, last_login) VALUES (?, ?, datetime(\'now\'), datetime(\'now\'))'
+      ).bind(userId, userEmail).run();
+      await env.DB.prepare(
+        'UPDATE users SET email = ?, last_login = datetime(\'now\') WHERE id = ?'
+      ).bind(userEmail, userId).run();
     } catch (dbError) {
       console.error('Failed to update user in database:', dbError);
       // Continue anyway - user might already exist

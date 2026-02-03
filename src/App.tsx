@@ -254,6 +254,9 @@ function App() {
           serverSearchEnabled={serverSearchEnabled}
           onToggleServerSearch={handleToggleServerSearch}
           onHelp={() => setShowHelp(true)}
+          extraActions={
+            <ExportImport passwords={passwords} masterPassword="" onImport={handleImport} />
+          }
         />
 
         <main className="app-main">
@@ -267,21 +270,13 @@ function App() {
               }}
             />
           ) : (
-            <>
-              <div className="actions-bar">
-                <button onClick={() => setShowForm(true)} className="btn btn-primary">
-                  + Add Password
-                </button>
-                <ExportImport passwords={passwords} masterPassword="" onImport={handleImport} />
-              </div>
-              <PasswordList
-                passwords={[...passwords, ...serverResults]}
-                onEdit={handleEditPassword}
-                onDelete={handleDeletePassword}
-                onAdd={() => setShowForm(true)}
-                query={search}
-              />
-            </>
+            <PasswordList
+              passwords={[...passwords, ...serverResults]}
+              onEdit={handleEditPassword}
+              onDelete={handleDeletePassword}
+              onAdd={() => setShowForm(true)}
+              query={search}
+            />
           )}
         </main>
 

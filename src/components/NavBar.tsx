@@ -21,9 +21,10 @@ interface Props {
   serverSearchEnabled?: boolean;
   onToggleServerSearch?: () => void;
   onHelp?: () => void;
+  extraActions?: React.ReactNode;
 }
 
-export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccount, onOpenDashboard, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp }: Props) {
+export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccount, onOpenDashboard, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp, extraActions }: Props) {
   const searchRef = useRef<HTMLInputElement | null>(null);
   const debounced = useMemo(() => onSearch ? debounce((q: string) => onSearch(q), 400) : null, [onSearch]);
 
@@ -76,9 +77,10 @@ export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccoun
         <button className="icon-btn" onClick={onOpenAccount} aria-label="Open account settings">
           <User size={16} />
         </button>
-        <button className="btn btn-primary" onClick={onAdd} aria-label="Add password">
-          <Plus size={16} /> Add
+        <button className="icon-btn primary" onClick={onAdd} aria-label="Add password" title="Add password">
+          <Plus size={16} />
         </button>
+        {extraActions}
         <button
           className={`icon-btn ${serverSearchEnabled ? 'active' : ''}`}
           onClick={onToggleServerSearch}
