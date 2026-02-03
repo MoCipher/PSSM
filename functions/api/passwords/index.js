@@ -70,49 +70,61 @@ export async function onRequest({ request, env }) {
         });
       }
 
-      // Clear existing passwords and insert new ones
+      // Clear existing passwords and insert new ones using batch
       await env.DB.prepare('DELETE FROM passwords WHERE user_id = ?').bind(userId).run();
 
+      // Use batch insert for better reliability
+      const statements = [];
       for (const password of passwords) {
         if (!password || !password.id) continue;
+        
         const createdAt = typeof password.createdAt === 'number'
           ? new Date(password.createdAt).toISOString()
           : (password.createdAt || new Date().toISOString());
         const updatedAt = typeof password.updatedAt === 'number'
           ? new Date(password.updatedAt).toISOString()
           : (password.updatedAt || new Date().toISOString());
-        await env.DB.prepare(
-          'INSERT INTO passwords (id, user_id, name, username, password, url, notes, two_factor_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        ).bind(
-          password.id,
-          userId,
-          password.name || '',
-          password.username || '',
-          password.password || '',
-          password.url || '',
-          password.notes || '',
-          password.twoFactorSecret || '',
-          createdAt,
-          updatedAt
-        ).run();
+        
+        statements.push(
+          env.DB.prepare(
+            'INSERT OR REPLACE INTO passwords (id, user_id, name, username, password, url, notes, two_factor_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          ).bind(
+            password.id,
+            userId,
+            password.name || '',
+            password.username || '',
+            password.password || '',
+            password.url || '',
+            password.notes || '',
+            password.twoFactorSecret || '',
+            createdAt,
+            updatedAt
+          )
+        );
       }
+
+      if (statements.length > 0) {
+        await env.DB.batch(statements);
+      }
+
+      const insertedCount = statements.length;
 
       return new Response(JSON.stringify({
         success: true,
         syncedAt: new Date().toISOString(),
-        count: passwords.length
+        count: insertedCount
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Passwords error:', error);
+    console.error('Password sync error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
