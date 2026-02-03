@@ -17,7 +17,6 @@ import { serverSearch } from './utils/search';
 import {
   isAuthenticated,
   loadPasswordsFromCloud,
-  syncPasswords,
   savePasswordToCloud,
   deletePasswordFromCloud,
   logout,
@@ -118,6 +117,8 @@ function App() {
   const handleLogin = async (token: string, _userData: any) => {
     apiClient.setToken(token);
     setAuthState('authenticated');
+    setSearch('');
+    setServerResults([]);
     const loadedPasswords = await loadPasswordsFromCloud();
     setPasswords(loadedPasswords);
     initializeSync();
@@ -126,6 +127,9 @@ function App() {
   const handleLogout = () => {
     logout();
     setPasswords([]);
+    setSearch('');
+    setServerResults([]);
+    setServerSearchEnabled(false);
     setAuthState('login');
     setShowForm(false);
     setEditingPassword(null);
@@ -142,6 +146,7 @@ function App() {
       return;
     }
 
+    const previous = passwords;
     try {
       let updated: PasswordEntry[];
       if (editingPassword) {
@@ -171,11 +176,10 @@ function App() {
         }
       }
 
-      await syncPasswords(updated);
-
       setShowForm(false);
       setEditingPassword(null);
     } catch (error) {
+      setPasswords(previous);
       console.error('Failed to save password:', error);
       await alert({ message: 'Failed to save password. Please try again.' });
     }
@@ -193,10 +197,9 @@ function App() {
     if (!ok) return;
 
     try {
+      await deletePasswordFromCloud(id);
       const updated = passwords.filter(p => p.id !== id);
       setPasswords(updated);
-      await deletePasswordFromCloud(id);
-      await syncPasswords(updated);
     } catch (error) {
       console.error('Failed to delete password:', error);
       await alert({ message: 'Failed to delete password. Please try again.' });
@@ -272,15 +275,7 @@ function App() {
                 <ExportImport passwords={passwords} masterPassword="" onImport={handleImport} />
               </div>
               <PasswordList
-                passwords={[...passwords.filter(p => {
-                  const q = (search || '').trim().toLowerCase();
-                  if (!q) return true;
-                  return (
-                    (p.name || '').toLowerCase().includes(q) ||
-                    (p.username || '').toLowerCase().includes(q) ||
-                    (p.url || '').toLowerCase().includes(q)
-                  );
-                }), ...serverResults]}
+                passwords={[...passwords, ...serverResults]}
                 onEdit={handleEditPassword}
                 onDelete={handleDeletePassword}
                 onAdd={() => setShowForm(true)}

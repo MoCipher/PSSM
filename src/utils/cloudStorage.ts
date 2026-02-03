@@ -1,8 +1,6 @@
 import { PasswordEntry } from './storage';
 import { apiClient } from './api';
 
-const SYNC_INTERVAL = 30000; // 30 seconds
-
 export interface CloudStorageResult {
   success: boolean;
   data?: PasswordEntry[];
@@ -13,13 +11,9 @@ export interface CloudStorageResult {
 let syncIntervalId: number | null = null;
 
 export const initializeSync = () => {
-  if (syncIntervalId) {
-    clearInterval(syncIntervalId);
-  }
-
-  syncIntervalId = window.setInterval(() => {
-    syncPasswords().catch(console.error);
-  }, SYNC_INTERVAL);
+  // DISABLED: Auto-sync was causing bulk-sync wipes due to state issues
+  // Passwords will only sync explicitly on save/delete or import
+  return;
 };
 
 export const stopSync = () => {
@@ -30,11 +24,11 @@ export const stopSync = () => {
 };
 
 // Sync passwords with the server
-export const syncPasswords = async (passwords?: PasswordEntry[]): Promise<CloudStorageResult> => {
+export const syncPasswords = async (passwords?: PasswordEntry[], syncType?: string): Promise<CloudStorageResult> => {
   try {
     // If passwords are provided, sync them up
     if (passwords) {
-      await apiClient.syncPasswords(passwords, undefined);
+      await apiClient.syncPasswords(passwords, undefined, syncType);
       return { success: true };
     }
 
@@ -68,7 +62,7 @@ export const savePasswordToCloud = async (password: PasswordEntry): Promise<bool
     return true;
   } catch (error) {
     console.error('Failed to save password to cloud:', error);
-    return false;
+    throw error;
   }
 };
 
@@ -79,7 +73,7 @@ export const deletePasswordFromCloud = async (passwordId: string): Promise<boole
     return true;
   } catch (error) {
     console.error('Failed to delete password from cloud:', error);
-    return false;
+    throw error;
   }
 };
 

@@ -48,14 +48,31 @@ export async function onRequest({ request, env, params }) {
     }
   };
 
+  const ensureEventsTable = async () => {
+    try {
+      await env.DB.prepare(
+        'CREATE TABLE IF NOT EXISTS sync_events (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, action TEXT, password_id TEXT, count INTEGER, created_at TEXT)'
+      ).run();
+    } catch (error) {
+      console.error('Failed to ensure sync_events table:', error);
+    }
+  };
+
   try {
     await ensureUser();
+    await ensureEventsTable();
     if (request.method === 'PUT') {
       // Update or insert password (UPSERT)
       const updateData = await request.json();
 
       // Use INSERT OR REPLACE to handle both new and existing passwords
-      await env.DB.prepare(
+      const createdAt = typeof updateData.createdAt === 'number'
+        ? new Date(updateData.createdAt).toISOString()
+        : (updateData.createdAt || new Date().toISOString());
+      const updatedAt = typeof updateData.updatedAt === 'number'
+        ? new Date(updateData.updatedAt).toISOString()
+        : new Date().toISOString();
+      const statement = env.DB.prepare(
         'INSERT OR REPLACE INTO passwords (id, user_id, name, username, password, url, notes, two_factor_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ).bind(
         passwordId,
@@ -66,13 +83,25 @@ export async function onRequest({ request, env, params }) {
         updateData.url || '',
         updateData.notes || '',
         updateData.twoFactorSecret || '',
-        updateData.createdAt || new Date().toISOString(),
-        new Date().toISOString()
-      ).run();
+        createdAt,
+        updatedAt
+      );
+      await env.DB.batch([statement]);
 
       const updated = await env.DB.prepare(
         'SELECT * FROM passwords WHERE id = ? AND user_id = ?'
       ).bind(passwordId, userId).first();
+
+      if (!updated) {
+        return new Response(JSON.stringify({ error: 'Failed to save password' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      await env.DB.prepare(
+        'INSERT INTO sync_events (user_id, action, password_id, count, created_at) VALUES (?, ?, ?, ?, datetime(\'now\'))'
+      ).bind(userId, 'upsert', passwordId, 1).run();
 
       return new Response(JSON.stringify({
         success: true,
@@ -92,6 +121,10 @@ export async function onRequest({ request, env, params }) {
           'DELETE FROM passwords WHERE id = ? AND user_id = ?'
         ).bind(passwordId, userId).run();
       }
+
+      await env.DB.prepare(
+        'INSERT INTO sync_events (user_id, action, password_id, count, created_at) VALUES (?, ?, ?, ?, datetime(\'now\'))'
+      ).bind(userId, 'delete', passwordId, existing ? 1 : 0).run();
 
       return new Response(JSON.stringify({
         success: true,

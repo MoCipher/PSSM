@@ -47,8 +47,19 @@ export async function onRequest({ request, env }) {
     }
   };
 
+  const ensureEventsTable = async () => {
+    try {
+      await env.DB.prepare(
+        'CREATE TABLE IF NOT EXISTS sync_events (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, action TEXT, password_id TEXT, count INTEGER, created_at TEXT)'
+      ).run();
+    } catch (error) {
+      console.error('Failed to ensure sync_events table:', error);
+    }
+  };
+
   try {
     await ensureUser();
+    await ensureEventsTable();
     if (request.method === 'GET') {
       // Get all passwords for user
       const passwords = await env.DB.prepare(
@@ -61,7 +72,7 @@ export async function onRequest({ request, env }) {
 
     } else if (request.method === 'POST') {
       // Sync passwords
-      const { passwords } = await request.json();
+      const { passwords, syncType } = await request.json();
 
       if (!Array.isArray(passwords)) {
         return new Response(JSON.stringify({ error: 'Passwords array required' }), {
@@ -70,21 +81,42 @@ export async function onRequest({ request, env }) {
         });
       }
 
-      // Clear existing passwords and insert new ones using batch
-      await env.DB.prepare('DELETE FROM passwords WHERE user_id = ?').bind(userId).run();
+      if (syncType !== 'import') {
+        return new Response(JSON.stringify({
+          error: 'Bulk sync not allowed without import flag'
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
-      // Use batch insert for better reliability
+      if (passwords.length === 0) {
+        return new Response(JSON.stringify({
+          success: true,
+          syncedAt: new Date().toISOString(),
+          count: 0,
+          skipped: true
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Build insert statements first; do not delete unless payload is valid
       const statements = [];
+      const invalidEntries = [];
       for (const password of passwords) {
-        if (!password || !password.id) continue;
-        
+        if (!password || !password.id) {
+          invalidEntries.push(password);
+          continue;
+        }
+
         const createdAt = typeof password.createdAt === 'number'
           ? new Date(password.createdAt).toISOString()
           : (password.createdAt || new Date().toISOString());
         const updatedAt = typeof password.updatedAt === 'number'
           ? new Date(password.updatedAt).toISOString()
           : (password.updatedAt || new Date().toISOString());
-        
+
         statements.push(
           env.DB.prepare(
             'INSERT OR REPLACE INTO passwords (id, user_id, name, username, password, url, notes, two_factor_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -103,11 +135,25 @@ export async function onRequest({ request, env }) {
         );
       }
 
-      if (statements.length > 0) {
-        await env.DB.batch(statements);
+      if (invalidEntries.length > 0 || statements.length === 0) {
+        return new Response(JSON.stringify({
+          error: 'Invalid password payload',
+          invalidCount: invalidEntries.length,
+          count: statements.length
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
+      const deleteStatement = env.DB.prepare('DELETE FROM passwords WHERE user_id = ?').bind(userId);
+      await env.DB.batch([deleteStatement, ...statements]);
+
       const insertedCount = statements.length;
+
+      await env.DB.prepare(
+        'INSERT INTO sync_events (user_id, action, password_id, count, created_at) VALUES (?, ?, ?, ?, datetime(\'now\'))'
+      ).bind(userId, 'bulk-sync', null, insertedCount).run();
 
       return new Response(JSON.stringify({
         success: true,

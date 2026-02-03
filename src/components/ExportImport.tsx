@@ -59,7 +59,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
           const content = event.target?.result as string;
           const imported = autoDetectAndParse(content, file.name);
           const merged = [...passwords, ...imported];
-          await syncPasswords(merged);
+          await syncPasswords(merged, 'import');
           onImport(merged);
           setImportError('');
           setShowMenu(false);
@@ -87,7 +87,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
           const content = event.target?.result as string;
           const imported = importPasswords(content);
           const merged = [...passwords, ...imported];
-          await syncPasswords(merged);
+          await syncPasswords(merged, 'import');
           onImport(merged);
           setImportError('');
           setShowMenu(false);
@@ -115,7 +115,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
           const content = event.target?.result as string;
           const imported = importPasswordsCSV(content);
           const merged = [...passwords, ...imported];
-          await syncPasswords(merged);
+          await syncPasswords(merged, 'import');
           onImport(merged);
           setImportError('');
           setShowMenu(false);
