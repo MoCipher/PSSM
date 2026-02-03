@@ -46,13 +46,26 @@ export async function onRequest({ request, env }) {
     }
 
     // Authentication successful - create token
-    const token = createToken('user-master', 'admin@mocipher.com', env.JWT_SECRET);
+    const userId = 'user-master';
+    const userEmail = 'admin@mocipher.com';
+
+    // Ensure user exists in database (upsert)
+    try {
+      await env.DB.prepare(
+        'INSERT OR REPLACE INTO users (id, email, created_at, last_login) VALUES (?, ?, COALESCE((SELECT created_at FROM users WHERE id = ?), datetime(\'now\')), datetime(\'now\'))'
+      ).bind(userId, userEmail, userId).run();
+    } catch (dbError) {
+      console.error('Failed to update user in database:', dbError);
+      // Continue anyway - user might already exist
+    }
+
+    const token = createToken(userId, userEmail, env.JWT_SECRET);
 
     return new Response(JSON.stringify({
       token,
       user: {
-        id: 'user-master',
-        email: 'admin@mocipher.com',
+        id: userId,
+        email: userEmail,
       },
     }), {
       status: 200,
