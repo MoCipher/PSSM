@@ -3,6 +3,7 @@ import { PasswordEntry, exportPasswords, exportPasswordsCSV, importPasswords, im
 import { syncPasswords } from '../utils/cloudStorage';
 import { autoDetectAndParse } from '../utils/passwordImport';
 import { Download, Upload, MoreVertical } from 'lucide-react';
+import { useAlert } from './AlertDialog';
 import './ExportImport.css';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function ExportImport({ passwords, masterPassword: _masterPassword, onImport }: Props) {
+  const alert = useAlert();
   const [showMenu, setShowMenu] = useState(false);
   const [importError, setImportError] = useState('');
 
@@ -61,7 +63,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
           onImport(merged);
           setImportError('');
           setShowMenu(false);
-          alert(`Successfully imported ${imported.length} password(s) from ${file.name}`);
+          await alert({ message: `Successfully imported ${imported.length} password(s)` });
         } catch (error) {
           setImportError(error instanceof Error ? error.message : 'Failed to import');
         }
@@ -89,7 +91,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
           onImport(merged);
           setImportError('');
           setShowMenu(false);
-          alert(`Successfully imported ${imported.length} password(s)`);
+          await alert({ message: `Successfully imported ${imported.length} password(s)` });
         } catch (error) {
           setImportError(error instanceof Error ? error.message : 'Failed to import');
         }
@@ -117,7 +119,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
           onImport(merged);
           setImportError('');
           setShowMenu(false);
-          alert(`Successfully imported ${imported.length} password(s)`);
+          await alert({ message: `Successfully imported ${imported.length} password(s)` });
         } catch (error) {
           setImportError(error instanceof Error ? error.message : 'Failed to import');
         }

@@ -12,6 +12,7 @@ import { useRef } from 'react';
 import './App.css';
 import { ToastProvider } from './components/Toast';
 import { useConfirm } from './components/ConfirmDialog';
+import { useAlert } from './components/AlertDialog';
 import { getSavedTheme, saveTheme, applyTheme, Theme } from './utils/theme';
 import { serverSearch } from './utils/search';
 import {
@@ -28,6 +29,7 @@ import { apiClient } from './utils/api';
 
 function App() {
   const confirm = useConfirm();
+  const alert = useAlert();
   const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'login'>('checking');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
@@ -143,7 +145,7 @@ function App() {
   const handleSavePassword = useCallback(async (entry: Omit<PasswordEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (authState !== 'authenticated') {
       console.error('Not authenticated');
-      alert('Error: Not authenticated. Please log in again.');
+      await alert({ message: 'Error: Not authenticated. Please log in again.' });
       return;
     }
 
@@ -182,9 +184,9 @@ function App() {
       setEditingPassword(null);
     } catch (error) {
       console.error('Failed to save password:', error);
-      alert('Failed to save password. Please try again.');
+      await alert({ message: 'Failed to save password. Please try again.' });
     }
-  }, [authState, passwords, editingPassword]);
+  }, [authState, passwords, editingPassword, alert]);
 
   const handleDeletePassword = useCallback(async (id: string) => {
     if (authState !== 'authenticated') return;
@@ -204,9 +206,9 @@ function App() {
       await syncPasswords(updated);
     } catch (error) {
       console.error('Failed to delete password:', error);
-      alert('Failed to delete password. Please try again.');
+      await alert({ message: 'Failed to delete password. Please try again.' });
     }
-  }, [authState, passwords]);
+  }, [authState, passwords, confirm, alert]);
 
   const handleImport = (imported: PasswordEntry[]) => {
     setPasswords(imported);

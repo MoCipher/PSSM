@@ -36,32 +36,23 @@ export async function onRequest({ request, env, params }) {
 
   try {
     if (request.method === 'PUT') {
-      // Update password
+      // Update or insert password (UPSERT)
       const updateData = await request.json();
 
-      const existing = await env.DB.prepare(
-        'SELECT id FROM passwords WHERE id = ? AND user_id = ?'
-      ).bind(passwordId, userId).first();
-
-      if (!existing) {
-        return new Response(JSON.stringify({ error: 'Password not found' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
+      // Use INSERT OR REPLACE to handle both new and existing passwords
       await env.DB.prepare(
-        'UPDATE passwords SET name = ?, username = ?, password = ?, url = ?, notes = ?, two_factor_secret = ?, updated_at = ? WHERE id = ? AND user_id = ?'
+        'INSERT OR REPLACE INTO passwords (id, user_id, name, username, password, url, notes, two_factor_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ).bind(
+        passwordId,
+        userId,
         updateData.name || '',
         updateData.username || '',
         updateData.password || '',
         updateData.url || '',
         updateData.notes || '',
         updateData.twoFactorSecret || '',
-        new Date().toISOString(),
-        passwordId,
-        userId
+        updateData.createdAt || new Date().toISOString(),
+        new Date().toISOString()
       ).run();
 
       const updated = await env.DB.prepare(

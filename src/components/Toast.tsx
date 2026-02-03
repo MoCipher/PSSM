@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import './PasswordForm.css';
+import { CheckCircle, AlertCircle, Info } from 'lucide-react';
+import './Toast.css';
 
 type Toast = { id: number; message: string; type?: 'info' | 'success' | 'error' };
 
@@ -13,7 +14,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts(t => [...t, { id, message, type }]);
     setTimeout(() => {
       setToasts(t => t.filter(x => x.id !== id));
-    }, 2500);
+    }, 3000);
+  };
+
+  const getIcon = (type: Toast['type']) => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle size={20} />;
+      case 'error':
+        return <AlertCircle size={20} />;
+      default:
+        return <Info size={20} />;
+    }
   };
 
   return (
@@ -21,8 +33,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-root" aria-live="polite" aria-atomic="false">
         {toasts.map(t => (
-          <div key={t.id} className={`toast ${t.type || 'info'}`} role="status" aria-live="polite">
-            {t.message}
+          <div key={t.id} className={`toast toast-${t.type || 'info'}`} role="status" aria-live="polite">
+            <div className="toast-icon">{getIcon(t.type)}</div>
+            <span className="toast-message">{t.message}</span>
           </div>
         ))}
       </div>
