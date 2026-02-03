@@ -82,30 +82,9 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
+
 .alert-btn-ok:active {
   transform: translateY(0);
-}
-
-/* Dark theme */
-[data-theme="dark"] .alert-dialog {
-  background: rgba(15, 23, 42, 0.98);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-}
-
-[data-theme="dark"] .alert-header {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-}
-
-[data-theme="dark"] .alert-domain {
-  color: #e2e8f0;
-}
-
-[data-theme="dark"] .alert-title {
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] .alert-message {
-  color: #cbd5e1;
 }
 
 @keyframes fadeIn {

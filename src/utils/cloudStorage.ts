@@ -2,7 +2,6 @@ import { PasswordEntry } from './storage';
 import { apiClient } from './api';
 
 const SYNC_INTERVAL = 30000; // 30 seconds
-const LAST_SYNC_KEY = 'last_sync_timestamp';
 
 export interface CloudStorageResult {
   success: boolean;
@@ -33,18 +32,14 @@ export const stopSync = () => {
 // Sync passwords with the server
 export const syncPasswords = async (passwords?: PasswordEntry[]): Promise<CloudStorageResult> => {
   try {
-    const lastSyncTimestamp = localStorage.getItem(LAST_SYNC_KEY);
-
     // If passwords are provided, sync them up
     if (passwords) {
-      await apiClient.syncPasswords(passwords, lastSyncTimestamp || undefined);
-      localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+      await apiClient.syncPasswords(passwords, undefined);
       return { success: true };
     }
 
     // Otherwise, fetch the latest from server
     const response = await apiClient.getPasswords();
-    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
     return { success: true, data: response.passwords };
   } catch (error) {
     console.error('Sync failed:', error);
@@ -59,7 +54,6 @@ export const syncPasswords = async (passwords?: PasswordEntry[]): Promise<CloudS
 export const loadPasswordsFromCloud = async (): Promise<PasswordEntry[]> => {
   try {
     const response = await apiClient.getPasswords();
-    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
     return response.passwords;
   } catch (error) {
     console.error('Failed to load passwords from cloud:', error);
@@ -97,6 +91,5 @@ export const isAuthenticated = (): boolean => {
 // Logout and clear sync
 export const logout = () => {
   apiClient.clearToken();
-  localStorage.removeItem(LAST_SYNC_KEY);
   stopSync();
 };

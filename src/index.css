@@ -25,27 +25,6 @@
   --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.2);
 }
 
-/* Dark theme overrides when [data-theme="dark"] is set on <html> */
-[data-theme="dark"] {
-  --primary: #8b5cf6;
-  --primary-dark: #7c3aed;
-  --primary-light: #a78bfa;
-  --secondary: #6366f1;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --bg-gradient: radial-gradient(1200px circle at 15% 10%, rgba(99, 102, 241, 0.12), transparent 60%),
-                linear-gradient(180deg, #0b1020 0%, #0f172a 100%);
-  --bg-gradient-alt: linear-gradient(180deg, #101827 0%, #0b1020 100%);
-  --card-bg: rgba(15, 23, 42, 0.9);
-  --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --border: rgba(148, 163, 184, 0.18);
-  --shadow: 0 8px 18px rgba(3, 7, 18, 0.45);
-  --shadow-lg: 0 16px 30px rgba(3, 7, 18, 0.55);
-  --shadow-xl: 0 28px 48px rgba(3, 7, 18, 0.6);
-}
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',

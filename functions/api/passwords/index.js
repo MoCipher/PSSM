@@ -32,8 +32,23 @@ export async function onRequest({ request, env }) {
   }
 
   const userId = userData.userId;
+  const userEmail = userData.email || `${userId}@local`;
+
+  const ensureUser = async () => {
+    try {
+      await env.DB.prepare(
+        'INSERT OR IGNORE INTO users (id, email, created_at, last_login) VALUES (?, ?, datetime(\'now\'), datetime(\'now\'))'
+      ).bind(userId, userEmail).run();
+      await env.DB.prepare(
+        'UPDATE users SET last_login = datetime(\'now\') WHERE id = ?'
+      ).bind(userId).run();
+    } catch (error) {
+      console.error('Failed to ensure user:', error);
+    }
+  };
 
   try {
+    await ensureUser();
     if (request.method === 'GET') {
       // Get all passwords for user
       const passwords = await env.DB.prepare(
@@ -59,6 +74,13 @@ export async function onRequest({ request, env }) {
       await env.DB.prepare('DELETE FROM passwords WHERE user_id = ?').bind(userId).run();
 
       for (const password of passwords) {
+        if (!password || !password.id) continue;
+        const createdAt = typeof password.createdAt === 'number'
+          ? new Date(password.createdAt).toISOString()
+          : (password.createdAt || new Date().toISOString());
+        const updatedAt = typeof password.updatedAt === 'number'
+          ? new Date(password.updatedAt).toISOString()
+          : (password.updatedAt || new Date().toISOString());
         await env.DB.prepare(
           'INSERT INTO passwords (id, user_id, name, username, password, url, notes, two_factor_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         ).bind(
@@ -70,8 +92,8 @@ export async function onRequest({ request, env }) {
           password.url || '',
           password.notes || '',
           password.twoFactorSecret || '',
-          password.createdAt || new Date().toISOString(),
-          password.updatedAt || new Date().toISOString()
+          createdAt,
+          updatedAt
         ).run();
       }
 

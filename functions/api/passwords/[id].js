@@ -32,9 +32,24 @@ export async function onRequest({ request, env, params }) {
   }
 
   const userId = userData.userId;
+  const userEmail = userData.email || `${userId}@local`;
   const passwordId = params.id;
 
+  const ensureUser = async () => {
+    try {
+      await env.DB.prepare(
+        'INSERT OR IGNORE INTO users (id, email, created_at, last_login) VALUES (?, ?, datetime(\'now\'), datetime(\'now\'))'
+      ).bind(userId, userEmail).run();
+      await env.DB.prepare(
+        'UPDATE users SET last_login = datetime(\'now\') WHERE id = ?'
+      ).bind(userId).run();
+    } catch (error) {
+      console.error('Failed to ensure user:', error);
+    }
+  };
+
   try {
+    await ensureUser();
     if (request.method === 'PUT') {
       // Update or insert password (UPSERT)
       const updateData = await request.json();
@@ -72,20 +87,16 @@ export async function onRequest({ request, env, params }) {
         'SELECT id FROM passwords WHERE id = ? AND user_id = ?'
       ).bind(passwordId, userId).first();
 
-      if (!existing) {
-        return new Response(JSON.stringify({ error: 'Password not found' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      if (existing) {
+        await env.DB.prepare(
+          'DELETE FROM passwords WHERE id = ? AND user_id = ?'
+        ).bind(passwordId, userId).run();
       }
-
-      await env.DB.prepare(
-        'DELETE FROM passwords WHERE id = ? AND user_id = ?'
-      ).bind(passwordId, userId).run();
 
       return new Response(JSON.stringify({
         success: true,
-        deletedId: passwordId
+        deletedId: passwordId,
+        notFound: !existing
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

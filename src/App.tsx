@@ -13,7 +13,6 @@ import './App.css';
 import { ToastProvider } from './components/Toast';
 import { useConfirm } from './components/ConfirmDialog';
 import { useAlert } from './components/AlertDialog';
-import { getSavedTheme, saveTheme, applyTheme, Theme } from './utils/theme';
 import { serverSearch } from './utils/search';
 import {
   isAuthenticated,
@@ -36,7 +35,6 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
-  const [theme, setTheme] = useState<Theme>(() => getSavedTheme() || 'light');
   const [search, setSearch] = useState<string>('');
   const [serverSearchEnabled, setServerSearchEnabled] = useState<boolean>(false);
   const [serverResults, setServerResults] = useState<PasswordEntry[]>([]);
@@ -75,11 +73,6 @@ function App() {
       stopSync();
     };
   }, []);
-
-  useEffect(() => {
-    applyTheme(theme);
-    saveTheme(theme);
-  }, [theme]);
 
   useEffect(() => {
     let mounted = true;
@@ -253,8 +246,6 @@ function App() {
           onAdd={() => setShowForm(true)}
           onOpenAccount={() => setShowAccount(true)}
           onOpenDashboard={() => setShowDashboard(true)}
-          theme={theme}
-          toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
           onLogout={handleLogout}
           onSearch={(q) => setSearch(q)}
           serverSearchEnabled={serverSearchEnabled}

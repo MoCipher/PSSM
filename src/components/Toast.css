@@ -62,37 +62,6 @@
   color: #ef4444;
 }
 
-/* Dark theme */
-[data-theme="dark"] .toast {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .toast-info {
-  color: #93c5fd;
-}
-
-[data-theme="dark"] .toast-info .toast-icon {
-  color: #60a5fa;
-}
-
-[data-theme="dark"] .toast-success {
-  color: #86efac;
-}
-
-[data-theme="dark"] .toast-success .toast-icon {
-  color: #4ade80;
-}
-
-[data-theme="dark"] .toast-error {
-  color: #fca5a5;
-}
-
-[data-theme="dark"] .toast-error .toast-icon {
-  color: #f87171;
-}
-
 @keyframes toastSlideIn {
   from {
     opacity: 0;

@@ -5,8 +5,6 @@ import {
   LayoutDashboard,
   User,
   Server,
-  Sun,
-  Moon,
   HelpCircle,
   LogOut
 } from 'lucide-react';
@@ -18,8 +16,6 @@ interface Props {
   onAdd?: () => void;
   onOpenAccount?: () => void;
   onOpenDashboard?: () => void;
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
   onLogout: () => void;
   onSearch?: (q: string) => void;
   serverSearchEnabled?: boolean;
@@ -27,7 +23,7 @@ interface Props {
   onHelp?: () => void;
 }
 
-export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccount, onOpenDashboard, theme, toggleTheme, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp }: Props) {
+export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccount, onOpenDashboard, onLogout, onSearch, serverSearchEnabled = false, onToggleServerSearch, onHelp }: Props) {
   const searchRef = useRef<HTMLInputElement | null>(null);
   const debounced = useMemo(() => onSearch ? debounce((q: string) => onSearch(q), 400) : null, [onSearch]);
 
@@ -90,9 +86,6 @@ export default function NavBar({ title = 'Password Manager', onAdd, onOpenAccoun
           aria-label="Toggle server search"
         >
           <Server size={16} />
-        </button>
-        <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
         <button className="icon-btn" onClick={onHelp} aria-label="Keyboard shortcuts">
           <HelpCircle size={16} />
