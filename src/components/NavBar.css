@@ -18,10 +18,16 @@
   text-align: center;
 }
 
+.nav-left {
+  display: none;
+}
+
 .nav-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .search-wrap {
