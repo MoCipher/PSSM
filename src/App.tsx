@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PasswordEntry } from './utils/storage';
 import PasswordList from './components/PasswordList';
 import PasswordForm from './components/PasswordForm';
@@ -8,7 +8,6 @@ import ExportImport from './components/ExportImport';
 import NavBar from './components/NavBar';
 import SecurityDashboard from './components/SecurityDashboard';
 import useFocusTrap from './hooks/useFocusTrap';
-import { useRef } from 'react';
 import './App.css';
 import { ToastProvider } from './components/Toast';
 import { useConfirm } from './components/ConfirmDialog';
