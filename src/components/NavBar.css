@@ -1,7 +1,8 @@
 .nav-bar {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   padding: 1rem 1.25rem;
   background: var(--card-bg);
@@ -14,6 +15,7 @@
   margin: 0;
   font-weight: 700;
   color: var(--text-primary);
+  text-align: center;
 }
 
 .nav-actions {
