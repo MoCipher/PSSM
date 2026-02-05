@@ -40,10 +40,19 @@ export default function PasswordLogin({ onLogin }: Props) {
 
   return (
     <div className="password-login">
+      <div className="login-background" aria-hidden="true">
+        <span className="orb orb-1" />
+        <span className="orb orb-2" />
+        <span className="orb orb-3" />
+        <span className="grid-glow" />
+      </div>
       <div className="login-container">
         <div className="login-card">
           <div className="login-header">
-            <Lock size={40} />
+            <div className="login-icon">
+              <Lock size={40} />
+              <span className="icon-ring" />
+            </div>
             <h1>Password Manager</h1>
             <p>Enter your password to access</p>
           </div>
