@@ -7,6 +7,7 @@ import AccountManagement from './components/AccountManagement';
 import ExportImport from './components/ExportImport';
 import NavBar from './components/NavBar';
 import SecurityDashboard from './components/SecurityDashboard';
+import LoadingScreen from './components/LoadingScreen';
 import useFocusTrap from './hooks/useFocusTrap';
 import './App.css';
 import { ToastProvider } from './components/Toast';
@@ -27,6 +28,7 @@ import { apiClient } from './utils/api';
 function App() {
   const confirm = useConfirm();
   const alert = useAlert();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'login'>('checking');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(null);
@@ -213,6 +215,15 @@ function App() {
     setEditingPassword(entry);
     setShowForm(true);
   }, []);
+
+  // Show loading screen on initial load
+  if (isInitialLoading) {
+    return (
+      <ToastProvider>
+        <LoadingScreen onLoadComplete={() => setIsInitialLoading(false)} />
+      </ToastProvider>
+    );
+  }
 
   if (authState === 'checking') {
     return (
