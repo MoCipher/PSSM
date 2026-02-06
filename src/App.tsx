@@ -14,6 +14,7 @@ import { ToastProvider } from './components/Toast';
 import { useConfirm } from './components/ConfirmDialog';
 import { useAlert } from './components/AlertDialog';
 import { serverSearch } from './utils/search';
+import { setStatusBarColor } from './utils/theme';
 import {
   isAuthenticated,
   loadPasswordsFromCloud,
@@ -46,6 +47,15 @@ function App() {
   useFocusTrap(accountPanelRef);
   useFocusTrap(dashboardPanelRef);
   useFocusTrap(helpPanelRef);
+
+  // Update status bar color when auth state changes
+  useEffect(() => {
+    if (authState === 'login' || authState === 'checking') {
+      setStatusBarColor('login');
+    } else if (authState === 'authenticated') {
+      setStatusBarColor('app');
+    }
+  }, [authState]);
 
   // Check authentication on app start
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { setStatusBarColor } from '../utils/theme';
 import './LoadingScreen.css';
 
 interface LoadingScreenProps {
@@ -9,6 +10,8 @@ function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // Match status bar to loading screen gradient
+    setStatusBarColor('login');
     // Wait for DOM and initial resources to load
     const timer = setTimeout(() => {
       setIsLoaded(true);
