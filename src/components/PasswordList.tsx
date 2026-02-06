@@ -241,13 +241,6 @@ export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query
                   </div>
                 )}
 
-                {entry.notes && (
-                  <div className="detail-row">
-                    <label>Notes:</label>
-                    <span>{entry.notes}</span>
-                  </div>
-                )}
-
                 {entry.lastUsed ? (
                   <div className="last-used">Last used: {new Date(entry.lastUsed).toLocaleString()}</div>
                 ) : null}

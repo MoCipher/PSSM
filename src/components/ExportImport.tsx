@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PasswordEntry, exportPasswords, exportPasswordsCSV, importPasswords, importPasswordsCSV } from '../utils/storage';
 import { syncPasswords } from '../utils/cloudStorage';
 import { autoDetectAndParse } from '../utils/passwordImport';
@@ -140,7 +141,7 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
         <MoreVertical size={18} />
       </button>
       
-      {showMenu && (
+      {showMenu && createPortal(
         <>
           <div className="export-import-backdrop" onClick={() => setShowMenu(false)} />
           <div className="export-import-menu" role="dialog" aria-modal="true" aria-label="Import & Export">
@@ -188,7 +189,8 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
               {importError && <div className="error">{importError}</div>}
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
