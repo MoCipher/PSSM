@@ -12,19 +12,31 @@
   flex-shrink: 0;
 }
 
+.export-import-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1999;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.15s ease-out;
+}
+
 .export-import-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow: var(--shadow-xl);
-  padding: 1.5rem;
-  min-width: 300px;
-  z-index: 1000;
-  animation: scaleIn 0.3s ease-out;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(24px);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  min-width: 340px;
+  max-width: 420px;
+  width: calc(100vw - 48px);
+  z-index: 2000;
+  animation: scaleIn 0.25s ease-out;
+  border: 1px solid var(--border);
 }
 
 .menu-section {
@@ -37,13 +49,13 @@
 }
 
 .menu-section h3 {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   margin-bottom: 0.75rem;
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.8;
+  letter-spacing: 1px;
+  opacity: 0.7;
 }
 
 .menu-btn {
@@ -54,6 +66,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
 }
 
 .menu-btn svg {
@@ -80,8 +94,8 @@
 
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 1rem 0;
+  background: var(--border);
+  margin: 0.75rem 0;
 }
 
 .export-import-menu .error {
@@ -95,11 +109,8 @@
 
 @media (max-width: 768px) {
   .export-import-menu {
-    right: 0;
-    left: 0;
     min-width: unset;
     width: calc(100vw - 32px);
-    margin: 0 16px;
   }
   
   .menu-btn {

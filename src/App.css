@@ -31,16 +31,16 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #f4f6fb 0%, #ffffff 100%);
+  background: linear-gradient(180deg, #f8f9fc 0%, #f0f2f8 50%, #ffffff 100%);
   animation: fadeIn 0.3s ease-out;
 }
 
 .app-main {
   flex: 1;
-  max-width: 1200px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 28px;
+  padding: 24px 28px;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -127,7 +127,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,14 +139,15 @@ body {
 
 .overlay-panel {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 28px;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .overlay-panel.large {
@@ -250,7 +252,7 @@ body {
 }
 
 [data-theme='dark'] .app {
-  background: radial-gradient(1200px circle at 20% 10%, rgba(99, 102, 241, 0.12), transparent 55%),
+  background: radial-gradient(1200px circle at 20% 10%, rgba(99, 102, 241, 0.1), transparent 55%),
               linear-gradient(180deg, #0b1020 0%, #0f172a 100%);
 }
 
@@ -258,6 +260,7 @@ body {
   background: #0f172a;
   color: var(--text);
   border: 1px solid #1f2937;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme='dark'] .btn-secondary {

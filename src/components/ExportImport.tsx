@@ -141,43 +141,46 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
       </button>
       
       {showMenu && (
-        <div className="export-import-menu">
-          <div className="menu-section">
-            <h3>Export Passwords</h3>
-            <button onClick={handleExportJSON} className="btn btn-small menu-btn">
-              <Download size={16} />
-              <span>Export as JSON</span>
-            </button>
-            <button onClick={handleExportCSV} className="btn btn-small menu-btn">
-              <Download size={16} />
-              <span>Export as CSV</span>
-            </button>
+        <>
+          <div className="export-import-backdrop" onClick={() => setShowMenu(false)} />
+          <div className="export-import-menu" role="menu">
+            <div className="menu-section">
+              <h3>Export Passwords</h3>
+              <button onClick={handleExportJSON} className="btn btn-small menu-btn">
+                <Download size={16} />
+                <span>Export as JSON</span>
+              </button>
+              <button onClick={handleExportCSV} className="btn btn-small menu-btn">
+                <Download size={16} />
+                <span>Export as CSV</span>
+              </button>
+            </div>
+            
+            <div className="divider"></div>
+            
+            <div className="menu-section">
+              <h3>Import from Password Manager</h3>
+              <button onClick={handleImportFromPasswordManager} className="btn btn-small menu-btn highlight">
+                <Upload size={16} />
+                <span>Bitwarden, 1Password, LastPass, Apple, Google</span>
+              </button>
+            </div>
+            
+            <div className="menu-section">
+              <h3>Import Custom Format</h3>
+              <button onClick={handleImportJSON} className="btn btn-small menu-btn">
+                <Upload size={16} />
+                <span>Import JSON</span>
+              </button>
+              <button onClick={handleImportCSV} className="btn btn-small menu-btn">
+                <Upload size={16} />
+                <span>Import CSV</span>
+              </button>
+            </div>
+            
+            {importError && <div className="error">{importError}</div>}
           </div>
-          
-          <div className="divider"></div>
-          
-          <div className="menu-section">
-            <h3>Import from Password Manager</h3>
-            <button onClick={handleImportFromPasswordManager} className="btn btn-small menu-btn highlight">
-              <Upload size={16} />
-              <span>Bitwarden, 1Password, LastPass, Apple, Google</span>
-            </button>
-          </div>
-          
-          <div className="menu-section">
-            <h3>Import Custom Format</h3>
-            <button onClick={handleImportJSON} className="btn btn-small menu-btn">
-              <Upload size={16} />
-              <span>Import JSON</span>
-            </button>
-            <button onClick={handleImportCSV} className="btn btn-small menu-btn">
-              <Upload size={16} />
-              <span>Import CSV</span>
-            </button>
-          </div>
-          
-          {importError && <div className="error">{importError}</div>}
-        </div>
+        </>
       )}
     </div>
   );
