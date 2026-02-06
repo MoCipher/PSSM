@@ -128,13 +128,30 @@ body {
   right: 0;
   bottom: 0;
   background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
+  animation: overlayFadeIn 0.25s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes panelSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .overlay-panel {
@@ -148,6 +165,7 @@ body {
   overflow-y: auto;
   position: relative;
   border: 1px solid rgba(0, 0, 0, 0.06);
+  animation: panelSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .overlay-panel.large {

@@ -136,10 +136,10 @@ export default function PasswordList({ passwords, onEdit, onDelete, onAdd, query
             (p.url || '').toLowerCase().includes(q)
           );
         })
-        .map((entry) => {
+        .map((entry, index) => {
           const faviconUrl = getFaviconUrl(entry.url);
           return (
-            <div key={entry.id} className="password-card">
+            <div key={entry.id} className="password-card" style={{ animationDelay: `${Math.min(index * 0.06, 0.5)}s` }}>
               <div className="password-header">
                 <div className="password-title">
                   {faviconUrl ? (

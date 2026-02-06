@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { PasswordEntry, exportPasswords, exportPasswordsCSV, importPasswords, importPasswordsCSV } from '../utils/storage';
 import { syncPasswords } from '../utils/cloudStorage';
 import { autoDetectAndParse } from '../utils/passwordImport';
-import { Download, Upload, MoreVertical } from 'lucide-react';
+import { Download, Upload, MoreVertical, X, ArrowUpDown } from 'lucide-react';
 import { useAlert } from './AlertDialog';
 import './ExportImport.css';
 
@@ -143,42 +143,50 @@ export default function ExportImport({ passwords, masterPassword: _masterPasswor
       {showMenu && (
         <>
           <div className="export-import-backdrop" onClick={() => setShowMenu(false)} />
-          <div className="export-import-menu" role="menu">
-            <div className="menu-section">
-              <h3>Export Passwords</h3>
-              <button onClick={handleExportJSON} className="btn btn-small menu-btn">
-                <Download size={16} />
-                <span>Export as JSON</span>
-              </button>
-              <button onClick={handleExportCSV} className="btn btn-small menu-btn">
-                <Download size={16} />
-                <span>Export as CSV</span>
+          <div className="export-import-menu" role="dialog" aria-modal="true" aria-label="Import & Export">
+            <div className="menu-header">
+              <h2><ArrowUpDown size={18} /> Import & Export</h2>
+              <button className="menu-close-btn" onClick={() => setShowMenu(false)} aria-label="Close">
+                <X size={16} />
               </button>
             </div>
-            
-            <div className="divider"></div>
-            
-            <div className="menu-section">
-              <h3>Import from Password Manager</h3>
-              <button onClick={handleImportFromPasswordManager} className="btn btn-small menu-btn highlight">
-                <Upload size={16} />
-                <span>Bitwarden, 1Password, LastPass, Apple, Google</span>
-              </button>
+            <div className="menu-body">
+              <div className="menu-section">
+                <h3>Export Passwords</h3>
+                <button onClick={handleExportJSON} className="menu-btn">
+                  <Download size={16} />
+                  <span>Export as JSON</span>
+                </button>
+                <button onClick={handleExportCSV} className="menu-btn">
+                  <Download size={16} />
+                  <span>Export as CSV</span>
+                </button>
+              </div>
+              
+              <div className="divider"></div>
+              
+              <div className="menu-section">
+                <h3>Import from Password Manager</h3>
+                <button onClick={handleImportFromPasswordManager} className="menu-btn highlight">
+                  <Upload size={16} />
+                  <span>Bitwarden, 1Password, LastPass, Apple, Google</span>
+                </button>
+              </div>
+              
+              <div className="menu-section">
+                <h3>Import Custom Format</h3>
+                <button onClick={handleImportJSON} className="menu-btn">
+                  <Upload size={16} />
+                  <span>Import JSON</span>
+                </button>
+                <button onClick={handleImportCSV} className="menu-btn">
+                  <Upload size={16} />
+                  <span>Import CSV</span>
+                </button>
+              </div>
+              
+              {importError && <div className="error">{importError}</div>}
             </div>
-            
-            <div className="menu-section">
-              <h3>Import Custom Format</h3>
-              <button onClick={handleImportJSON} className="btn btn-small menu-btn">
-                <Upload size={16} />
-                <span>Import JSON</span>
-              </button>
-              <button onClick={handleImportCSV} className="btn btn-small menu-btn">
-                <Upload size={16} />
-                <span>Import CSV</span>
-              </button>
-            </div>
-            
-            {importError && <div className="error">{importError}</div>}
           </div>
         </>
       )}
